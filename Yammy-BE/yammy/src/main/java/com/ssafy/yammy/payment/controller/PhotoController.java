@@ -28,11 +28,12 @@ public class PhotoController {
 
         List<PhotoUploadResponse> responses = requests.stream()
                 .map(req -> photoService.getGalleryPresignedUploadUrl(
-                        req.getMemberId(), req.getOriginalFilename()))
+                        req.getMemberId(), req.getOriginalFilename(), req.getContentType()))
                 .toList();
 
         return ResponseEntity.ok(responses);
     }
+
 
     // 단건 조회
     @GetMapping("/{photoId}")

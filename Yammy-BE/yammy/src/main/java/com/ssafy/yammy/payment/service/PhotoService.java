@@ -2,56 +2,51 @@ package com.ssafy.yammy.payment.service;
 
 import com.ssafy.yammy.payment.config.PhotoConfig;
 import com.ssafy.yammy.payment.dto.*;
+import com.ssafy.yammy.payment.entity.Photo;
+import com.ssafy.yammy.payment.repository.PhotoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Presigner; // S3의 presigned URL 요청 및 발급 도구
-import software.amazon.awssdk.services.s3.model.PutObjectRequest; // “S3에 파일 올릴 때 어떤 버킷/경로/헤더로 올릴지
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.net.URL;
 import java.time.Duration;
-import java.util.UUID; // 랜덤 값 생성
+import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor // final 필드 사용 시
+@RequiredArgsConstructor
 public class PhotoService {
 
     private final PhotoConfig photoConfig;
+    private final PhotoRepository photoRepository;
 
     // presigned URL 생성
     public PhotoUploadResponse getGalleryPresignedUploadUrl(Long memberId, String originalFilename, String contentType) {
         validateFile(originalFilename, contentType);
 
         try (S3Presigner presigner = createPresigner()) {
-
-            // member 관련 코드 구현 시 수정 예정
             String folderName = (memberId != null) ? "members/" + memberId : "anonymous";
             String subFolder = "gallery";
-
-            // 확장자 추출
             String extension = extractExtension(originalFilename);
 
-            // .jpg, .png 같은 확장자 추출하기
-            String key = String.format("%s/used-items/%s/%s/%s%s",
-                    photoConfig.getActiveProfile(),
+            String key = String.format("%s/%s/%s%s",
                     folderName,
                     subFolder,
-                    UUID.randomUUID(), // 동일한 파일명 올렸을 경우 경로 다르게 지정하기 위함
+                    UUID.randomUUID(),
                     extension);
 
-            // 요청 객체
             PutObjectRequest objectRequest = PutObjectRequest.builder()
                     .bucket(photoConfig.getBucketName())
                     .key(key)
                     .contentType(contentType)
                     .build();
 
-            // presign 요청 생성
             PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(20)) // presignedUrl 경로에 업로드 가능 시간
+                    .signatureDuration(Duration.ofMinutes(20))
                     .putObjectRequest(objectRequest)
                     .build();
 
@@ -65,7 +60,30 @@ public class PhotoService {
         }
     }
 
-    //
+    public PhotoUploadCompleteResponse completeUpload(PhotoUploadCompleteRequest request) {
+        Photo photo = Photo.builder()
+                .fileUrl(request.getFileUrl())
+                .s3Key(extractKeyFromUrl(request.getFileUrl()))
+                .contentType("image/jpeg")
+                .build();
+
+        photoRepository.save(photo);
+        return new PhotoUploadCompleteResponse(photo.getId(), photo.getFileUrl());
+    }
+
+    public PhotoResponse getPhoto(Long id) {
+        Photo photo = photoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("사진을 찾을 수 없습니다."));
+        return new PhotoResponse(photo.getId(), photo.getFileUrl());
+    }
+
+    public void deletePhoto(Long id) {
+        if (!photoRepository.existsById(id)) {
+            throw new IllegalArgumentException("삭제할 사진이 존재하지 않습니다.");
+        }
+        photoRepository.deleteById(id);
+    }
+
     private void validateFile(String originalFilename, String contentType) {
         if (originalFilename == null || originalFilename.isBlank()) {
             throw new IllegalArgumentException("파일 이름이 비어 있습니다.");
@@ -75,14 +93,16 @@ public class PhotoService {
         }
     }
 
-     // 확장자 추출 (.jpg 등)
     private String extractExtension(String filename) {
         int dotIndex = filename.lastIndexOf('.');
         return (dotIndex > 0) ? filename.substring(dotIndex) : "";
     }
 
+    private String extractKeyFromUrl(String fileUrl) {
+        int idx = fileUrl.indexOf(".com/");
+        return idx > 0 ? fileUrl.substring(idx + 5) : fileUrl;
+    }
 
-    // S3 Presigner 생성
     private S3Presigner createPresigner() {
         return S3Presigner.builder()
                 .region(Region.of(photoConfig.getRegion()))

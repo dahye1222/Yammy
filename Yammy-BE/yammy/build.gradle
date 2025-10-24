@@ -35,11 +35,8 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation 'com.mysql:mysql-connector-j:8.0.33'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'software.amazon.awssdk:s3:2.28.0'
-    implementation 'software.amazon.awssdk:s3-presigner:2.28.0'
+    implementation platform('software.amazon.awssdk:bom:2.20.56')
+    implementation 'software.amazon.awssdk:s3'
 
-}
 
-tasks.named('test') {
-	useJUnitPlatform()
 }

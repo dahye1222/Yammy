@@ -6,4 +6,5 @@ import lombok.Getter;
 public class PhotoUploadRequest {
     private Long memberId;
     private String originalFilename;
+    private String contentType;
 }

@@ -10,6 +10,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Getter
@@ -52,8 +53,12 @@ public class UsedItem {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @ElementCollection
-    @CollectionTable(name = "useditem_images", joinColumns = @JoinColumn(name = "post_id"))
-    @Column(name = "image_url", length = 500)
-    private List<String> imageUrls;
+    @OneToMany(mappedBy = "usedItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Photo> photos = new ArrayList<>();
+
+    // 양방향 연결
+    public void addPhoto(Photo photo) {
+        photos.add(photo);            // UsedItem → Photo 방향 연결
+        photo.assignUsedItem(this);   // Photo → UsedItem 방향 연결
+    }
 }
