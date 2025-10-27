@@ -1,15 +1,15 @@
 import { Routes, Route } from 'react-router-dom';
 
-import HomePage from "../shared/components/HomePage"
+import SNSPage from "../sns/components/SNSPage"
 import UsedItem from "../useditem/components/UsedItem"
 
-const index = () => {
+const AppRouter = () => {
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
+      <Route path="/" element={<SNSPage />} />
       <Route path="/useditem" element={<UsedItem />} />
     </Routes>
   );
 };
 
-export default index;
+export default AppRouter;
