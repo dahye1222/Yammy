@@ -26,7 +26,7 @@ public class SwaggerConfig {
                         ))
                 .info(new Info()
                         .title("Yammy API")
-                        .description("야구 통합 플랫폼 서비스 API 문서")
+                        .description("야미 서비스 API 문서")
                         .version("v1.0.0")
                         .contact(new Contact()
                                 .name("SSAFY C205 Team")
