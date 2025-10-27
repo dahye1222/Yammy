@@ -1,10 +1,12 @@
-import React from 'react';
-import AppRouter from './router/AppRouter';
+import NavigationBarBottom from './shared/components/NavagationBarBottom'
+import NavigationBarTop from './shared/components/NavigationBarTop'
+import "./App.css"
 
 function App() {
   return (
-    <div>
-      <AppRouter />
+    <div className="app-container">
+      <NavigationBarTop />
+      <NavigationBarBottom />
     </div>
   );
 }
