@@ -1,6 +1,10 @@
 spring:
   config:
+<<<<<<< HEAD
     import: optional:file:.env[.properties]  # ✅ .env 파일 자동 인식 설정
+=======
+    import: optional:file:.env[.properties]
+>>>>>>> 59bdc9e4e32c06a840c75bf2a69515a066c7525d
 
   application:
     name: yammy
