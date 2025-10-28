@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './SNSPage.css';
 
 const ImageCarousel = ({ images, postId }) => {
@@ -150,6 +150,88 @@ const SNSPage = () => {
         }
     ]);
 
+    const [isLoading, setIsLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const observerTarget = useRef(null);
+
+    // 새로운 게시물 데이터 생성 함수
+    const generateNewPosts = (startId) => {
+        const authors = ['김철수', '박영희', '이민수', '정수진', '최민호'];
+        const avatars = [
+            'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-2.jpg',
+            'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg',
+            'https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-3.jpg'
+        ];
+        const contents = [
+            '오늘 경기 정말 대박이었어요! 🔥',
+            '새로운 운동화 구매했습니다 👟',
+            '아침 조깅 완료! 상쾌하다 ☀️',
+            '헬스장에서 새 기록 달성! 💪',
+            '오늘의 운동 루틴 공유합니다 📝'
+        ];
+        const images = [
+            'https://storage.googleapis.com/uxpilot-auth.appspot.com/dce6e55300-6e1d23662ab252d21081.png',
+            'https://storage.googleapis.com/uxpilot-auth.appspot.com/98cb1f43e3-528b8a3b540bea1f4652.png',
+            'https://storage.googleapis.com/uxpilot-auth.appspot.com/60a72d35f1-09cace140106185bf5cc.png'
+        ];
+
+        return Array.from({ length: 3 }, (_, i) => ({
+            id: startId + i,
+            author: authors[Math.floor(Math.random() * authors.length)],
+            avatar: avatars[Math.floor(Math.random() * avatars.length)],
+            time: `${Math.floor(Math.random() * 12) + 1}시간 전`,
+            content: contents[Math.floor(Math.random() * contents.length)],
+            images: [images[Math.floor(Math.random() * images.length)]],
+            likes: Math.floor(Math.random() * 200) + 50,
+            comments: Math.floor(Math.random() * 50) + 5,
+            isLiked: false,
+            isFollowing: false
+        }));
+    };
+
+    // Intersection Observer 설정
+    useEffect(() => {
+        // 더 많은 게시물 로드
+        const loadMorePosts = () => {
+            if (isLoading || !hasMore) return;
+
+            setIsLoading(true);
+
+            // API 호출 시뮬레이션 (1초 딜레이)
+            setTimeout(() => {
+                const newPosts = generateNewPosts(posts.length + 1);
+                setPosts(prevPosts => [...prevPosts, ...newPosts]);
+                setIsLoading(false);
+
+                // 30개 이상이면 더 이상 로드하지 않음 (테스트용)
+                if (posts.length >= 30) {
+                    setHasMore(false);
+                }
+            }, 1000);
+        };
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && hasMore && !isLoading) {
+                    loadMorePosts();
+                }
+            },
+            { threshold: 0.5 }
+        );
+
+        const currentTarget = observerTarget.current;
+
+        if (currentTarget) {
+            observer.observe(currentTarget);
+        }
+
+        return () => {
+            if (currentTarget) {
+                observer.unobserve(currentTarget);
+            }
+        };
+    }, [hasMore, isLoading, posts.length]);
+
     const toggleLike = (postId) => {
         setPosts(posts.map(post =>
             post.id === postId
@@ -224,6 +306,24 @@ const SNSPage = () => {
                         </div>
                     </div>
                 ))}
+
+                {/* Intersection Observer 타겟 */}
+                <div ref={observerTarget} className="observer-target" />
+
+                {/* 로딩 인디케이터 */}
+                {isLoading && (
+                    <div className="loading-indicator">
+                        <div className="spinner"></div>
+                        <p>게시물을 불러오는 중...</p>
+                    </div>
+                )}
+
+                {/* 더 이상 게시물이 없을 때 */}
+                {!hasMore && (
+                    <div className="end-message">
+                        <p>모든 게시물을 확인했습니다 ✓</p>
+                    </div>
+                )}
             </div>
         </div>
     );
