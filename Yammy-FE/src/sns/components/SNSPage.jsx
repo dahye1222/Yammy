@@ -3,59 +3,77 @@ import './SNSPage.css';
 
 const ImageCarousel = ({ images, postId }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [touchStart, setTouchStart] = useState(0);
-    const [touchEnd, setTouchEnd] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
+    const [startPos, setStartPos] = useState(0);
+    const [dragOffset, setDragOffset] = useState(0);
+    const [dragStartTime, setDragStartTime] = useState(0);
 
-    const goToNext = () => {
-        setCurrentIndex((prev) => (prev + 1) % images.length);
+    // 드래그 시작
+    const handleDragStart = (e) => {
+        setIsDragging(true);
+        const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+        setStartPos(clientX);
+        setDragOffset(0);
+        setDragStartTime(Date.now());
     };
 
-    const goToPrev = () => {
-        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    // 드래그 중 (실시간으로 따라다님)
+    const handleDragMove = (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+
+        const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+        const diff = clientX - startPos;
+
+        // 드래그한 거리를 %로 변환
+        const containerWidth = e.currentTarget.offsetWidth;
+        const movePercentage = (diff / containerWidth) * 100;
+
+        setDragOffset(movePercentage);
     };
 
-    // 터치/마우스 스와이프 감지
-    const handleTouchStart = (e) => {
-        setTouchStart(e.type === 'touchstart' ? e.touches[0].clientX : e.clientX);
-    };
+    // 드래그 종료
+    const handleDragEnd = () => {
+        if (!isDragging) return;
+        setIsDragging(false);
 
-    const handleTouchMove = (e) => {
-        setTouchEnd(e.type === 'touchmove' ? e.touches[0].clientX : e.clientX);
-    };
+        const dragDuration = Date.now() - dragStartTime;
+        const isQuickSwipe = dragDuration < 300 && Math.abs(dragOffset) > 10;
 
-    const handleTouchEnd = () => {
-        if (!touchStart || !touchEnd) return;
-
-        const distance = touchStart - touchEnd;
-        const isLeftSwipe = distance > 50;
-        const isRightSwipe = distance < -50;
-
-        if (isLeftSwipe && currentIndex < images.length - 1) {
-            goToNext();
+        // 다음 이미지로 (왼쪽 스와이프)
+        if ((isQuickSwipe && dragOffset < -5) || dragOffset < -30) {
+            if (currentIndex < images.length - 1) {
+                setCurrentIndex(currentIndex + 1);
+            }
         }
-        if (isRightSwipe && currentIndex > 0) {
-            goToPrev();
+        // 이전 이미지로 (오른쪽 스와이프)
+        else if ((isQuickSwipe && dragOffset > 5) || dragOffset > 30) {
+            if (currentIndex > 0) {
+                setCurrentIndex(currentIndex - 1);
+            }
         }
 
-        setTouchStart(0);
-        setTouchEnd(0);
+        setDragOffset(0);
     };
 
     return (
         <div className="image-carousel">
             <div
                 className="carousel-slider"
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                onMouseDown={handleTouchStart}
-                onMouseMove={handleTouchMove}
-                onMouseUp={handleTouchEnd}
-                onMouseLeave={handleTouchEnd}
+                onTouchStart={handleDragStart}
+                onTouchMove={handleDragMove}
+                onTouchEnd={handleDragEnd}
+                onMouseDown={handleDragStart}
+                onMouseMove={handleDragMove}
+                onMouseUp={handleDragEnd}
+                onMouseLeave={handleDragEnd}
             >
                 <div
                     className="carousel-track"
-                    style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+                    style={{
+                        transform: `translateX(calc(-${currentIndex * 100}% + ${dragOffset}%))`,
+                        transition: isDragging ? 'none' : 'transform 0.4s ease-in-out'
+                    }}
                 >
                     {images.map((image, index) => (
                         <div key={index} className="carousel-slide">
