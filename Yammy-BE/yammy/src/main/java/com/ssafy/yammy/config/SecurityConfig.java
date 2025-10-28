@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .requestMatchers("/webjars/**").permitAll()
                         .requestMatchers("/api/v1/webhook/**").permitAll()
                         .requestMatchers("/api/trades/**").permitAll()
+                        .requestMatchers("/api/photos/**").permitAll()
                         .requestMatchers("/api/v1/ai/**").permitAll()
                         .requestMatchers("/api/photos/**").permitAll()
                         .anyRequest().authenticated()

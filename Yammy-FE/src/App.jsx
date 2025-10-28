@@ -1,3 +1,4 @@
+import { Routes, Route } from 'react-router-dom';
 import NavigationBarBottom from './shared/components/NavagationBarBottom'
 import NavigationBarTop from './shared/components/NavigationBarTop'
 import AppRouter from './router/AppRouter'
