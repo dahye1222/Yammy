@@ -17,7 +17,7 @@ Test_Build_BE:
   stage: Test_Build
   image: openjdk:17-jdk-slim
   tags:
-    - yammy-build
+    - test-build # docker executore를 사용하는 새로 생성된 러너
   services:
     - name: mysql:8.0
       alias: mysql-db
