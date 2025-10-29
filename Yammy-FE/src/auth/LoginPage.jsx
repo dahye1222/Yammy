@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from './api/authApi';
+import { getKakaoAuthUrl } from './config/kakaoConfig';
 import './styles/auth.css';
 
 export default function LoginPage() {
@@ -72,9 +73,7 @@ export default function LoginPage() {
   };
 
   const handleKakaoLogin = () => {
-    alert('카카오 로그인 기능은 준비 중입니다.');
-    // TODO: 백엔드 카카오 OAuth API 연동 시 구현
-    // window.location.href = 'http://localhost:8080/oauth2/authorization/kakao';
+    window.location.href = getKakaoAuthUrl();
   };
 
   return (

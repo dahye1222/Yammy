@@ -8,6 +8,7 @@ import UsedItemEdit from "../useditem/components/UsedItemEdit"
 import UsedItemCreate from "../useditem/components/UsedItemCreate"
 import LoginPage from "../auth/LoginPage";
 import SignupPage from "../auth/SignupPage";
+import KakaoCallbackPage from "../auth/KakaoCallbackPage";
 
 export default function AppRouter() {
   return (
@@ -15,9 +16,11 @@ export default function AppRouter() {
       {/* Auth Routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/kakao/callback" element={<KakaoCallbackPage />} />
 
       {/* SNS Routes */}
       <Route path="/" element={<SNSPage />} />
+      <Route path="/sns" element={<SNSPage />} />
       <Route path="/post/:postId/comments" element={<CommentPage />} />
       <Route path="/user/:userId" element={<UserProfile />} />
 
