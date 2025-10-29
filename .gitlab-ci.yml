@@ -76,7 +76,7 @@ FE_Image:
 
   variables:
     # ... (ECR 관련 변수) ...
-    FE_IMAGE_URI: $ECR_REPOSITORY_URI/yammy:frontend-latest # 이미지 이름 명확하게 분리
+    FE_IMAGE_TAG: frontend-latest
     AWS_DEFAULT_REGION: ap-northeast-2
     # ⭐️ 추가됨: DIND 서비스에 연결하기 위한 필수 설정 ⭐️
     DOCKER_HOST: tcp://docker:2375
@@ -96,8 +96,8 @@ FE_Image:
 
     # 2. Docker 이미지 빌드 및 푸시
     # FE_Image 잡은 이제 Node 환경을 Dockerfile 내의 멀티 스테이지 빌드로 처리합니다.
-    - docker build -t $FE_IMAGE_URI .
-    - docker push $FE_IMAGE_URI
+    - docker build -t $ECR_REPOSITORY_URI:$FE_IMAGE_TAG .
+    - docker push $ECR_REPOSITORY_URI:$FE_IMAGE_TAG
 
 BE_Image:
   stage: BE_Image
