@@ -61,10 +61,6 @@ Test_Build_BE:
       - ${BACKEND_DIR}/build/libs/*.jar
     expire_in: 1 week
 
-# =========================================================
-# ❌ 나머지 스테이지: 실행 방지 (테스트 확인용)
-# =========================================================
-
 FE_Image:
   stage: FE_Image
   # ⭐️ image를 docker로 변경하여 build/push 명령을 사용할 수 있도록 합니다. ⭐️
@@ -101,10 +97,50 @@ FE_Image:
 
 BE_Image:
   stage: BE_Image
+  image: docker:24.0.5
+  tags:
+    - test-build
+  services:
+    - name: docker:24.0.5-dind
+
+  dependencies:
+    - Test_Build_BE
+
+  variables:
+    # ECR 및 AWS 인증 변수 (CI/CD Variables에 등록된 Secret 변수 사용)
+    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+    AWS_DEFAULT_REGION: ap-northeast-2
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+
+    # ⭐️ BE 이미지 태그 명시 ⭐️
+    BE_IMAGE_TAG: backend-latest
+    PROD_APPLICATION_YML: $PROD_APPLICATION_YML # GitLab CI/CD Variables에 등록된 운영 YML 내용
+
+  before_script:
+    - cd ${BACKEND_DIR}
+
+    # 1. 운영 설정 파일 생성 (운영 환경 변수 참조 포함)
+    - echo "Creating production application-prod.yml..."
+    - echo "$PROD_APPLICATION_YML" > src/main/resources/application-prod.yml
+
+    # 2. ECR 로그인 및 AWS CLI 설치
+    - apk add --no-cache python3 py3-pip
+    - pip install awscli
+    - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+    - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+
+    # ECR 로그인 실행
+    - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
+
   script:
-    - echo "Skipping BE Image build for Test."
-  when: manual
-  allow_failure: true
+    # 3. Docker 이미지 빌드 (Dockerfile은 Yammy_BE/yammy 안에 있습니다.)
+    # Dockerfile은 JAR 파일과 application-prod.yml을 이미지에 포함합니다.
+    - docker build -t $ECR_REPOSITORY_URI:$BE_IMAGE_TAG .
+
+    # 4. ECR에 푸시
+    - docker push $ECR_REPOSITORY_URI:$BE_IMAGE_TAG
 
 Deploy:
   stage: Deploy
@@ -112,3 +148,4 @@ Deploy:
     - echo "Skipping Deploy for Test."
   when: manual
   allow_failure: true
+
