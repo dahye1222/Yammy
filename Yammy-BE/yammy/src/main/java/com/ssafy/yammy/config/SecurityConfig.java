@@ -42,7 +42,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 통합
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/swagger-ui.html").permitAll()
@@ -53,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/trades/**").permitAll()
                         .requestMatchers("/api/photos/**").permitAll()
                         .requestMatchers("/api/v1/ai/**").permitAll()
+                        .requestMatchers("/favicon.ico").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -67,7 +68,7 @@ public class SecurityConfig {
         // 개발 + 운영 도메인 함께 허용
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
-                "http://k13c205.p.ssafy.io/"
+                "http://k13c205.p.ssafy.io"
         ));
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
