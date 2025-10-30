@@ -142,11 +142,9 @@ Deploy:
 
   before_script:
 
-    # ⭐️ 1. AWS CLI 및 Docker Compose 설치 (sudo 필요) ⭐️
     - sudo apt-get update -qq
     - sudo apt-get install -y awscli docker-compose
 
-    # 2. ECR 로그인 (Host OS에서 실행)
     - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
 
   script:
