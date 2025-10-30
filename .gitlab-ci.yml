@@ -123,7 +123,8 @@ BE_Image:
     - cd ${BACKEND_DIR}
     - chmod +x gradlew
     - rm -f src/main/resources/application.yml
-    - echo "$PROD_APPLICATION_YML" > src/main/resources/application-prod.yml
+    - echo "$PROD_APPLICATION_YML" > src/main/resources/application.yml
+    - echo "$PROD_APPLICATION_YML"
     - echo "Production application-prod.yml created successfully."
 
     # ⭐️ 테스트를 제외하고 운영용 .jar 파일을 새로 빌드합니다. ⭐️
