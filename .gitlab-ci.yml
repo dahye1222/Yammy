@@ -156,14 +156,14 @@ Deploy:
 
   before_script:
     - echo "Starting deployment directly on EC2 host..."
+    - echo "$AWS_DEFAULT_REGION"
 
     # ⭐️ 1. AWS CLI 및 Docker Compose 설치 (sudo 필요) ⭐️
     - sudo apt-get update -qq
     - sudo apt-get install -y awscli docker-compose
 
     # 2. ECR 로그인 (Host OS에서 실행)
-    # ⚠️ Shell Runner는 root 권한이 필요할 수 있으므로 sudo 사용
-    - sudo aws ecr get-login-password --region $AWS_DEFAULT_REGION | sudo docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
+    - aws ecr get-login-password --region $AWS_DEFAULT_REGION | sudo docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
 
     # 3. ⭐️ Shell 환경 변수 설정 (docker-compose.yml이 참조) ⭐️
     - export DB_URL=$DB_URL
@@ -175,9 +175,9 @@ Deploy:
 
   script:
     # 4. 최신 이미지 Pull 및 Docker Compose 실행
-    - sudo docker pull $BE_IMAGE_URI
-    - sudo docker pull $FE_IMAGE_URI
+    - docker pull $BE_IMAGE_URI
+    - docker pull $FE_IMAGE_URI
 
     # 5. Docker Compose 실행: 최신 이미지를 사용하여 서비스 업데이트
     # EC2의 /home/ubuntu/docker-compose.yml 파일을 사용
-    - sudo docker-compose -f /home/ubuntu/docker-compose.yml up -d --force-recreate
+    - docker-compose -f /home/ubuntu/docker-compose.yml up -d --force-recreate
