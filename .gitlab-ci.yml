@@ -47,19 +47,19 @@ Test_Build_BE:
   before_script:
     - cd ${BACKEND_DIR}
     - chmod +x gradlew
-    -
-    # ⭐️ 수정 1: DNS 등록 강제 및 Ready-State 확보를 위해 대기 ⭐️
-    - echo "Pinging services for DNS resolution and waiting..."
-    - ping -c 3 mysql-db || true # 3번 핑을 시도하여 DNS 등록을 강제 (실패해도 계속 진행)
-    - ping -c 3 redis || true
-    - sleep 15 # 대기 시간을 10초에서 15초로 늘려 Ready-State를 확보
 
-    # ⭐️ 수정 2: IP 추출 로직은 오류 우회를 위해 유지 ⭐️
-    - export MYSQL_HOST_IP=$(getent hosts mysql-db | awk '{ print $1 }')
-    - if [ -z "$MYSQL_HOST_IP" ]; then export MYSQL_HOST_IP="mysql-db"; fi
+    # ⭐️ 수정 1: DNS 강제 등록 및 대기 시간을 단일 라인으로 분리 ⭐️
+    - ping -c 3 mysql-db || true ; ping -c 3 redis || true ; sleep 15
 
-    # DB_URL을 새로 찾은 호스트/IP로 치환
-    - export DB_URL=$(echo $DB_URL | sed "s/mysql-db/${MYSQL_HOST_IP}/")
+    # ⭐️ 수정 2: IP 추출 및 치환 로직을 단일 라인으로 합치기 (가장 안전) ⭐️
+    - | # ⬅️ 텍스트 블록 시작: 이 아래는 쉘 코드로 해석됩니다.
+      MYSQL_HOST_IP=$(getent hosts mysql-db | awk '{ print $1 }');
+      if [ -z "$MYSQL_HOST_IP" ]; then 
+        echo "WARNING: Hostname resolution failed. Using alias.";
+        MYSQL_HOST_IP="mysql-db"; 
+      fi;
+      export DB_URL=$(echo $DB_URL | sed "s/mysql-db/${MYSQL_HOST_IP}/");
+      echo "DB_URL set to: $DB_URL"; # 확인을 위한 로그
 
     # ⭐️ 추가됨: 기존 application.yml 파일 삭제 ⭐️
     - echo "Deleting existing application.yml and creating CI version..."
