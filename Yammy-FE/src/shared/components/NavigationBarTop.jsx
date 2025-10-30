@@ -19,13 +19,18 @@ const NavigationBarTop = () => {
   }, []);
 
   const handleLogout = () => {
+    setShowUserMenu(false);
     if (window.confirm('로그아웃 하시겠습니까?')) {
       localStorage.clear();
       setIsLoggedIn(false);
       setNickname('');
-      setShowUserMenu(false);
       navigate('/login');
     }
+  };
+
+  const handleProfileClick = () => {
+    setShowUserMenu(false);
+    navigate(`/user/${nickname}`);
   };
 
   return (
@@ -44,7 +49,7 @@ const NavigationBarTop = () => {
             </button>
             {showUserMenu && (
               <div className="user-dropdown">
-                <button onClick={() => navigate(`/user/${nickname}`)}>
+                <button onClick={handleProfileClick}>
                   <i className="fas fa-user"></i>
                   내 프로필
                 </button>
