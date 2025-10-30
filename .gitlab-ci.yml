@@ -154,21 +154,13 @@ Deploy:
     - sudo apt-get install -y awscli docker-compose
 
     # 2. ECR 로그인 (Host OS에서 실행)
-    - aws ecr get-login-password --region $AWS_DEFAULT_REGION | sudo docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
-
-    # 3. ⭐️ Shell 환경 변수 설정 (docker-compose.yml이 참조) ⭐️
-    - export DB_URL=$DB_URL
-    - export DB_USERNAME=$DB_USERNAME
-    - export DB_PASSWORD=$DB_PASSWORD
-    - export ECR_REPOSITORY_URI=$ECR_REPOSITORY_URI
-    - export BE_IMAGE_URI=$BE_IMAGE_URI
-    - export FE_IMAGE_URI=$FE_IMAGE_URI
+    - sudo aws ecr get-login-password --region $AWS_DEFAULT_REGION | sudo docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
 
   script:
     # 4. 최신 이미지 Pull 및 Docker Compose 실행
-    - docker pull $BE_IMAGE_URI
-    - docker pull $FE_IMAGE_URI
+    - sudo docker pull $BE_IMAGE_URI
+    - sudo docker pull $FE_IMAGE_URI
 
     # 5. Docker Compose 실행: 최신 이미지를 사용하여 서비스 업데이트
     # EC2의 /home/ubuntu/docker-compose.yml 파일을 사용
-    - docker-compose -f /home/ubuntu/docker-compose.yml up -d --force-recreate
+    - sudo docker-compose -f /home/ubuntu/docker-compose.yml up -d --force-recreate
