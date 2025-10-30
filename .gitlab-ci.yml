@@ -133,73 +133,50 @@ BE_Image:
 # --- Deploy Stage ---
 Deploy:
   stage: Deploy
+  # ⭐️ tags: yammy_proejct_deplyer 러너에 할당되도록 태그 사용 (현재 yammy-build 태그로 가정) ⭐️
   tags:
     - yammy-build
-  image: ubuntu:latest
+  # ⭐️ image: Host OS의 도구를 사용하도록 변경 ⭐️
+  image: ubuntu:latest # Shell Runner가 image를 무시하지만, Alpine 도구를 삭제합니다.
 
+  # ⭐️ variables: SSH 관련 변수 제거 (DEPLOY_HOST, DEPLOY_USER, DEPLOY_KEY) ⭐️
   variables:
-    DEPLOY_HOST: $EC2_HOST      # EC2 인스턴스 Public IP 주소
-    DEPLOY_USER: $EC2_USERNAME             # EC2 접속 사용자 이름
-    DEPLOY_KEY: $EC2_PRIVATE_KEY      # SSH 프라이빗 키
-
-    # DB/이미지 정보 (docker-compose.yml에 주입할 값)
+    # DB 정보 (docker-compose.yml에 주입할 값)
     DB_URL: $PROD_DB_URL
     DB_USERNAME: $PROD_DB_USERNAME
     DB_PASSWORD: $PROD_DB_PASSWORD
     DB_NAME: $PROD_DB_USERNAME
 
-    # ECR 및 이미지 정보 (전역 변수를 다시 Job 변수로 끌어옴)
+    # 이미지 정보
     ECR_REPOSITORY_URI: $ECR_REPOSITORY_URI
     BE_IMAGE_URI: $ECR_REPOSITORY_URI:backend-latest
     FE_IMAGE_URI: $ECR_REPOSITORY_URI:frontend-latest
-    AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION # ECR 로그인에 필요
+    AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
 
   before_script:
-    # 1. SSH 에이전트 시작 (Host OS에 설치되어 있어야 함)
-    - eval $(ssh-agent -s)
+    - echo "Starting deployment directly on EC2 host..."
 
-    # 2. 키 파일을 생성하고 줄바꿈 문자 제거
-    # $DEPLOY_KEY (EC2_PRIVATE_KEY) 변수를 사용합니다.
-    - echo "$DEPLOY_KEY" | tr -d '\r' > deploy_key.pem
-    - chmod 600 deploy_key.pem
+    # ⭐️ 1. AWS CLI 및 Docker Compose 설치 (sudo 필요) ⭐️
+    - sudo apt-get update -qq
+    - sudo apt-get install -y awscli docker-compose
 
-    # 3. SSH 키 등록 (EC2 호스트의 SSH 클라이언트 사용)
-    - ssh-add -q deploy_key.pem
+    # 2. ECR 로그인 (Host OS에서 실행)
+    # ⚠️ Shell Runner는 root 권한이 필요할 수 있으므로 sudo 사용
+    - sudo aws ecr get-login-password --region $AWS_DEFAULT_REGION | sudo docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
 
-    # 4. Known Hosts 등록
-    - mkdir -p ~/.ssh || true
-    - chmod 700 ~/.ssh
-    - ssh-keyscan $DEPLOY_HOST >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
-
-    # 2. ⭐️ SSH 접속하여 실행할 명령어 묶음 정의 ⭐️
-    - |
-      SSH_COMMAND="
-        # 2-1. GitLab Variables의 값을 EC2 쉘 환경 변수로 설정 (docker-compose 참조용)
-        # 이 변수들은 EC2의 docker-compose.yml 파일에 주입됩니다.
-        export DB_URL='$DB_URL';
-        export DB_USERNAME='$DB_USERNAME';
-        export DB_PASSWORD='$DB_PASSWORD';
-        export ECR_REPOSITORY_URI='$ECR_REPOSITORY_URI';
-        export BE_IMAGE_URI='$BE_IMAGE_URI';
-        export FE_IMAGE_URI='$FE_IMAGE_URI';
-      
-        # 2-2. ECR 로그인 (EC2 호스트의 AWS CLI와 Docker 사용)
-        # ⚠️ EC2 인스턴스에 AWS CLI 설치 및 Docker 서비스가 실행 중이어야 합니다.
-        aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin \$ECR_REPOSITORY_URI;
-      
-        # 2-3. 최신 이미지 Pull (Downtime 최소화를 위해 Pull 먼저 실행)
-        docker pull \$BE_IMAGE_URI;
-        docker pull \$FE_IMAGE_URI;
-
-        # 2-4. Docker Compose 실행: 최신 이미지를 사용하여 서비스 업데이트
-        # DB 컨테이너는 데이터 보존을 위해 삭제/재생성되지 않고 업데이트됩니다.
-        # -f /home/ubuntu/docker-compose.yml 파일이 존재해야 합니다.
-        docker-compose -f /home/ubuntu/docker-compose.yml up -d --force-recreate
-      "
+    # 3. ⭐️ Shell 환경 변수 설정 (docker-compose.yml이 참조) ⭐️
+    - export DB_URL=$DB_URL
+    - export DB_USERNAME=$DB_USERNAME
+    - export DB_PASSWORD=$DB_PASSWORD
+    - export ECR_REPOSITORY_URI=$ECR_REPOSITORY_URI
+    - export BE_IMAGE_URI=$BE_IMAGE_URI
+    - export FE_IMAGE_URI=$FE_IMAGE_URI
 
   script:
-    # ⭐️ 3. SSH 접속 및 배포 명령 실행 ⭐️
-    # '-o StrictHostKeyChecking=no'는 보안 위험이 있어 keygen으로 대체했습니다.
-    - ssh $DEPLOY_USER@$DEPLOY_HOST "$SSH_COMMAND"
+    # 4. 최신 이미지 Pull 및 Docker Compose 실행
+    - sudo docker pull $BE_IMAGE_URI
+    - sudo docker pull $FE_IMAGE_URI
 
+    # 5. Docker Compose 실행: 최신 이미지를 사용하여 서비스 업데이트
+    # EC2의 /home/ubuntu/docker-compose.yml 파일을 사용
+    - sudo docker-compose -f /home/ubuntu/docker-compose.yml up -d --force-recreate
