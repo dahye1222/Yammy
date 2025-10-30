@@ -48,18 +48,19 @@ Test_Build_BE:
     - cd ${BACKEND_DIR}
     - chmod +x gradlew
 
-    # ⭐️ 수정 1: wait-for-it 스크립트 설치 및 사용 ⭐️
-    # apt-get은 openjdk:17-jdk-slim (debian/ubuntu 기반) 이미지에서 사용됩니다.
     - apt-get update -qq && apt-get install -y --no-install-recommends wait-for-it
-
     - echo "Waiting for MySQL and Redis services to be ready..."
-    # ⭐️ MySQL이 3306 포트 연결을 받을 때까지 30초간 대기 ⭐️
     - wait-for-it mysql-db:3306 -t 30 -- echo "MySQL is up and running!"
-    # ⭐️ Redis가 6379 포트 연결을 받을 때까지 30초간 대기 ⭐️
     - wait-for-it redis:6379 -t 30 -- echo "Redis is up and running!"
 
-    # ⭐️ 수정 2: IP 추출 로직 모두 제거 (wait-for-it이 호스트 이름 해석을 전제로 합니다) ⭐️
-    # alias: mysql-db 덕분에 wait-for-it이 호스트 이름을 찾을 수 있습니다.
+    - | 
+      MYSQL_HOST_IP=$(getent hosts mysql-db | awk '{ print $1 }');
+      if [ -z "$MYSQL_HOST_IP" ]; then 
+        echo "WARNING: Hostname resolution failed. Using alias as IP fallback.";
+        MYSQL_HOST_IP="mysql-db"; # IP를 찾지 못하면 alias 사용 (wait-for-it이 성공했으므로 시도)
+      fi;
+      export DB_URL=$(echo $DB_URL | sed "s/mysql-db/${MYSQL_HOST_IP}/");
+      echo "Final DB_URL Host: $MYSQL_HOST_IP"; # 최종 호스트 IP 확인
 
     - echo "Deleting existing application.yml and creating CI version..."
     - rm -f src/main/resources/application.yml
