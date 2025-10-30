@@ -140,22 +140,13 @@ Deploy:
   # ⭐️ image: Host OS의 도구를 사용하도록 변경 ⭐️
   image: ubuntu:latest # Shell Runner가 image를 무시하지만, Alpine 도구를 삭제합니다.
 
-  # ⭐️ variables: SSH 관련 변수 제거 (DEPLOY_HOST, DEPLOY_USER, DEPLOY_KEY) ⭐️
-  variables:
-    # DB 정보 (docker-compose.yml에 주입할 값)
-    DB_URL: $PROD_DB_URL
-    DB_USERNAME: $PROD_DB_USERNAME
-    DB_PASSWORD: $PROD_DB_PASSWORD
-    DB_NAME: $PROD_DB_USERNAME
-
-    # 이미지 정보
-    ECR_REPOSITORY_URI: $ECR_REPOSITORY_URI
-    BE_IMAGE_URI: $ECR_REPOSITORY_URI:backend-latest
-    FE_IMAGE_URI: $ECR_REPOSITORY_URI:frontend-latest
-    AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
-
   before_script:
-    - echo "Starting deployment directly on EC2 host..."
+    - export PROD_DB_URL
+    - export PROD_DB_USERNAME
+    - export PROD_DB_PASSWORD
+    - export BE_IMAGE_URI
+    - export FE_IMAGE_URI
+    - export AWS_DEFAUIL_REGION
     - echo "$AWS_DEFAULT_REGION"
 
     # ⭐️ 1. AWS CLI 및 Docker Compose 설치 (sudo 필요) ⭐️
