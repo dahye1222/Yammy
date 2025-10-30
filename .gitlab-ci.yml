@@ -135,7 +135,7 @@ Deploy:
   stage: Deploy
   tags:
     - yammy-build
-  image: alpine/ssh:latest
+  image: ubuntu:latest
 
   variables:
     DEPLOY_HOST: $EC2_HOST      # EC2 인스턴스 Public IP 주소
@@ -143,10 +143,10 @@ Deploy:
     DEPLOY_KEY: $EC2_PRIVATE_KEY      # SSH 프라이빗 키
 
     # DB/이미지 정보 (docker-compose.yml에 주입할 값)
-    DB_URL: $DB_URL
-    DB_USERNAME: $DB_USERNAME
-    DB_PASSWORD: $DB_PASSWORD
-    DB_NAME: $DB_USERNAME
+    DB_URL: $PROD_DB_URL
+    DB_USERNAME: $PROD_DB_USERNAME
+    DB_PASSWORD: $PROD_DB_PASSWORD
+    DB_NAME: $PROD_DB_USERNAME
 
     # ECR 및 이미지 정보 (전역 변수를 다시 Job 변수로 끌어옴)
     ECR_REPOSITORY_URI: $ECR_REPOSITORY_URI
@@ -155,7 +155,6 @@ Deploy:
     AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION # ECR 로그인에 필요
 
   before_script:
-    - apk update && apk add openssh-client
     - eval $(ssh-agent -s)
     - echo "$DEPLOY_KEY" | tr -d '\r' > deploy_key.pem
     - chmod 600 deploy_key.pem
