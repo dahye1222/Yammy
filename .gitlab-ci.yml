@@ -49,20 +49,20 @@ Test_Build_BE:
     - chmod +x gradlew
 
     - apt-get update -qq && apt-get install -y --no-install-recommends wait-for-it
-    - echo "Waiting for MySQL and Redis services to be ready..."
     - wait-for-it mysql-db:3306 -t 30 -- echo "MySQL is up and running!"
     - wait-for-it redis:6379 -t 30 -- echo "Redis is up and running!"
 
     - | 
       MYSQL_HOST_IP=$(getent hosts mysql-db | awk '{ print $1 }');
       if [ -z "$MYSQL_HOST_IP" ]; then 
-        echo "WARNING: Hostname resolution failed. Using alias as IP fallback.";
         MYSQL_HOST_IP="mysql-db"; # IP를 찾지 못하면 alias 사용 (wait-for-it이 성공했으므로 시도)
       fi;
       export DB_URL=$(echo $DB_URL | sed "s/mysql-db/${MYSQL_HOST_IP}/");
       echo "Final DB_URL Host: $MYSQL_HOST_IP"; # 최종 호스트 IP 확인
 
-    - echo "Deleting existing application.yml and creating CI version..."
+    - export DB_URL=$DB_URL
+    - export DB_USERNAME=$DB_USERNAME
+    - export DB_PASSWORD=$DB_PASSWORD
     - rm -f src/main/resources/application.yml
     - echo "$CI_APPLICATION_YML" > src/main/resources/application.yml
     - echo "application.yml created successfully with CI variables."
