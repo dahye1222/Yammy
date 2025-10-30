@@ -1,6 +1,7 @@
 package com.ssafy.yammy.payment.dto;
 
 import jakarta.validation.constraints.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import java.util.List;
@@ -8,9 +9,6 @@ import java.util.List;
 @Getter
 @Setter
 public class UsedItemRequestDto {
-
-    @NotNull(message = "회원 ID가 필요합니다")
-    private Long memberId; // 게시글 작성자 ID
 
     @NotBlank(message = "제목을 입력해주세요")
     @Size(min = 2, max = 50, message = "제목은 2자 이상 50자 이하여야 합니다")
@@ -31,5 +29,12 @@ public class UsedItemRequestDto {
     @Size(max = 3, message = "이미지는 최대 3장까지 등록 가능합니다")
     private List<Long> photoIds;
 
+    @Builder
+    public UsedItemRequestDto(String title, Integer price, String description, List<Long> photoIds) {
+        this.title = title;
+        this.price = price;
+        this.description = description;
+        this.photoIds = photoIds;
+    }
 
 }

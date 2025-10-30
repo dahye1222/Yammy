@@ -19,17 +19,17 @@ import java.util.ArrayList;
 @Table(name = "useditem")
 public class UsedItem {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "post_id")
+    private Long id;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @Column(name = "nickname", length = 20)
     private String nickname;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "post_id")
-    private Long id;
 
     @Column(name = "title", nullable = false, length = 50)
     private String title;
@@ -41,7 +41,7 @@ public class UsedItem {
     private Integer price;
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    private Boolean status = false;  // 이것만으로 충분!
+    private Boolean status = false;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false, nullable = false)
