@@ -47,14 +47,18 @@ Test_Build_BE:
   before_script:
     - cd ${BACKEND_DIR}
     - chmod +x gradlew
+    -
+    # ⭐️ 수정 1: DNS 등록 강제 및 Ready-State 확보를 위해 대기 ⭐️
+    - echo "Pinging services for DNS resolution and waiting..."
+    - ping -c 3 mysql-db || true # 3번 핑을 시도하여 DNS 등록을 강제 (실패해도 계속 진행)
+    - ping -c 3 redis || true
+    - sleep 15 # 대기 시간을 10초에서 15초로 늘려 Ready-State를 확보
 
-    - sleep 10
-
-    # ⭐️ 수정됨: if 문을 단일 라인으로 압축 ⭐️
+    # ⭐️ 수정 2: IP 추출 로직은 오류 우회를 위해 유지 ⭐️
     - export MYSQL_HOST_IP=$(getent hosts mysql-db | awk '{ print $1 }')
-    - if [ -z "$MYSQL_HOST_IP" ]; then export MYSQL_HOST_IP="172.17.0.1"; fi
+    - if [ -z "$MYSQL_HOST_IP" ]; then export MYSQL_HOST_IP="mysql-db"; fi
 
-    # ⭐️ 수정 3: DB_URL 변수를 IP 주소로 덮어쓰기 ⭐️
+    # DB_URL을 새로 찾은 호스트/IP로 치환
     - export DB_URL=$(echo $DB_URL | sed "s/mysql-db/${MYSQL_HOST_IP}/")
 
     # ⭐️ 추가됨: 기존 application.yml 파일 삭제 ⭐️
