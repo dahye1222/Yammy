@@ -134,7 +134,7 @@ BE_Image:
 Deploy:
   stage: Deploy
   tags:
-    - shell-deploy
+    - yammy-build
   image: alpine/ssh:latest
 
   variables:
