@@ -63,13 +63,7 @@ Test_Build_BE:
     - echo "application.yml created successfully with CI variables."
 
   script:
-    - ./gradlew clean build
-
-  artifacts:
-    when: on_success
-    paths:
-      - ${BACKEND_DIR}/build/libs/*.jar
-    expire_in: 1 week
+    - ./gradlew clean test
 
 FE_Image:
   stage: FE_Image
@@ -99,34 +93,46 @@ FE_Image:
 
 BE_Image:
   stage: BE_Image
-  image: docker:24.0.5
+  image: openjdk:17-jdk-slim # ⭐️ 빌드를 위해 gradle 이미지를 쓰거나, openjdk에 도구를 설치해야 합니다.
+  # ⭐️ 여기서는 openjdk:17-jdk-slim을 사용하고 Docker를 설치합니다.
   tags:
     - test-build
   services:
     - name: docker:24.0.5-dind
 
-  dependencies:
+  # ⭐️ 'dependencies' 대신 'needs'를 사용하여 테스트가 통과해야만 실행되도록 순서만 지정
+  needs:
     - Test_Build_BE
 
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
     BE_IMAGE_TAG: backend-latest
-    PROD_APPLICATION_YML: $PROD_APPLICATION_YML # GitLab CI/CD Variables에 등록된 운영 YML 내용
+    PROD_APPLICATION_YML: $PROD_APPLICATION_YML
 
   script:
-    - cd ${BACKEND_DIR}
+    # --- 1. Docker 설치 ---
+    - apt-get update -qq && apt-get install -y --no-install-recommends docker.io docker-compose
 
-    - rm -f src/main/resources/application.yml
-    - echo "$PROD_APPLICATION_YML" > src/main/resources/application-prod.yml
-
-    - apk add --no-cache python3 py3-pip
+    # --- 2. AWS CLI 설치 및 로그인 ---
+    - apt-get install -y python3 python3-pip
     - pip install awscli
-    - export AWS_ACCESS_KEY_ID
-    - export AWS_SECRET_ACCESS_KEY
-    - export AWS_DEFAULT_REGION
     - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
 
+    # --- 3. ⭐️ 운영용 .jar 빌드 (가장 중요) ⭐️ ---
+    - cd ${BACKEND_DIR}
+    - chmod +x gradlew
+    - rm -f src/main/resources/application.yml
+    - echo "$PROD_APPLICATION_YML" > src/main/resources/application-prod.yml
+    - echo "Production application-prod.yml created successfully."
+
+    # ⭐️ 테스트를 제외하고 운영용 .jar 파일을 새로 빌드합니다. ⭐️
+    - ./gradlew clean build -x test
+    - echo "Production JAR built successfully."
+
+    # --- 4. ⭐️ 새로 빌드된 .jar로 Docker 이미지 생성 ⭐️ ---
+    # 이제 Dockerfile이 'build/libs/*.jar'를 복사할 때,
+    # 방금 위에서 만든 "운영용 .jar"를 사용하게 됩니다.
     - docker build -t $ECR_REPOSITORY_URI:$BE_IMAGE_TAG .
     - docker push $ECR_REPOSITORY_URI:$BE_IMAGE_TAG
 
