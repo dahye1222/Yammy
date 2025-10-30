@@ -19,7 +19,6 @@ export default function AppRouter() {
       <Route path="/" element={<SNSPage />} />
       <Route path="/post/:postId/comments" element={<CommentPage />} />
       <Route path="/user/:userId" element={<UserProfile />} />
-  
     </Routes>
   );
 }
