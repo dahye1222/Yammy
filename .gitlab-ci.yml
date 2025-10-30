@@ -10,51 +10,41 @@ variables:
   FRONTEND_DIR: Yammy-FE
   BACKEND_DIR: Yammy-BE/yammy
 
-# =========================================================
-# 🎯 Test_Build_BE: 테스트 환경 구성 및 빌드 (확인 대상)
-# =========================================================
 Test_Build_BE:
   stage: Test_Build
+  only:
+    - CI/CD     # 삭제 예정
+    - develop   # 삭제 예정
+    - master
   image: openjdk:17-jdk-slim
   tags:
-    - test-build # docker executore를 사용하는 새로 생성된 러너
+    - test-build
   services:
     - name: mysql:8.0
       alias: mysql-db
     - name: redis:latest
       alias: redis
-
   variables:
-    # 1. MySQL 서비스 컨테이너 자체 설정 변수
     MYSQL_DATABASE: testdb
     MYSQL_ROOT_PASSWORD: root_password
-
-    # 2. Spring Boot가 참조할 환경 변수 (GitLab CI에서 조합)
     DB_URL: jdbc:mysql://mysql-db:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul
     DB_USERNAME: root
     DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-
     SPRING_DATA_REDIS_HOST: redis
     SPRING_DATA_REDIS_PORT: 6379
     SPRING_DATA_REDIS_PASSWORD:
-
-    # 추가 변수들은 GitLab CI/CD Variables에 등록되어 사용된다고 가정
-
   before_script:
     - cd ${BACKEND_DIR}
     - chmod +x gradlew
-
     - apt-get update -qq && apt-get install -y --no-install-recommends wait-for-it
     - wait-for-it mysql-db:3306 -t 30 -- echo "MySQL is up and running!"
     - wait-for-it redis:6379 -t 30 -- echo "Redis is up and running!"
-
     - | 
       MYSQL_HOST_IP=$(getent hosts mysql-db | awk '{ print $1 }');
       if [ -z "$MYSQL_HOST_IP" ]; then 
-        MYSQL_HOST_IP="mysql-db"; # IP를 찾지 못하면 alias 사용 (wait-for-it이 성공했으므로 시도)
+        MYSQL_HOST_IP="mysql-db"; 
       fi;
       export DB_URL=jdbc:mysql://${MYSQL_HOST_IP}:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul
-
     - export DB_URL=$DB_URL
     - export DB_USERNAME=$DB_USERNAME
     - export DB_PASSWORD=$DB_PASSWORD
@@ -67,84 +57,77 @@ Test_Build_BE:
 
 FE_Image:
   stage: FE_Image
+  only:
+    - CI/CD     # 삭제 예정
+    - develop   # 삭제 예정
+    - master
   image: docker:24.0.5
   tags:
     - test-build
   services:
     - name: docker:24.0.5-dind
-
   variables:
     FE_IMAGE_TAG: frontend-latest
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
-
   script:
     - cd ${FRONTEND_DIR}
-
     - apk add --no-cache python3 py3-pip
     - pip install awscli
     - export AWS_ACCESS_KEY_ID
     - export AWS_SECRET_ACCESS_KEY
     - export AWS_DEFAULT_REGION
     - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
-
     - docker build -t $ECR_REPOSITORY_URI:$FE_IMAGE_TAG .
     - docker push $ECR_REPOSITORY_URI:$FE_IMAGE_TAG
 
 BE_Image:
   stage: BE_Image
-  image: openjdk:17-jdk-slim # ⭐️ 빌드를 위해 gradle 이미지를 쓰거나, openjdk에 도구를 설치해야 합니다.
-  # ⭐️ 여기서는 openjdk:17-jdk-slim을 사용하고 Docker를 설치합니다.
+  only:
+    - CI/CD     # 삭제 예정
+    - develop   # 삭제 예정
+    - master
+  image: openjdk:17-jdk-slim
   tags:
     - test-build
   services:
     - name: docker:24.0.5-dind
-
-  # ⭐️ 'dependencies' 대신 'needs'를 사용하여 테스트가 통과해야만 실행되도록 순서만 지정
   needs:
     - Test_Build_BE
-
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
     BE_IMAGE_TAG: backend-latest
-
   script:
     - apt-get update -qq && apt-get install -y --no-install-recommends docker.io docker-compose
-
     - apt-get install -y python3 python3-pip
     - pip install awscli
     - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
-
     - cd ${BACKEND_DIR}
     - chmod +x gradlew
     - rm -f src/main/resources/application.yml
     - echo "$PROD_APPLICATION_YML" > src/main/resources/application.yml
     - cat src/main/resources/application.yml
     - echo "Production application-prod.yml created successfully."
-
     - ./gradlew clean build -x test
     - echo "Production JAR built successfully."
-
     - docker build -t $ECR_REPOSITORY_URI:$BE_IMAGE_TAG .
     - docker push $ECR_REPOSITORY_URI:$BE_IMAGE_TAG
 
-# --- Deploy Stage ---
 Deploy:
   stage: Deploy
-  # ⭐️ tags: yammy_proejct_deplyer 러너에 할당되도록 태그 사용 (현재 yammy-build 태그로 가정) ⭐️
+  only:
+    - CI/CD     # 삭제 예정
+    - develop   # 삭제 예정
+    - master
   tags:
     - yammy-build
-  dependencies: [] # <-- 이 줄을 추가합니다.
-  image: ubuntu:latest # Shell Runner가 image를 무시하지만, Alpine 도구를 삭제합니다.
-
+  dependencies: []
+  image: ubuntu:latest
   before_script:
-
     - sudo apt-get update -qq
     - sudo apt-get install -y awscli docker-compose
-
     - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
-
   script:
     - sudo -E docker-compose -f /home/ubuntu/docker-compose.yml down -v --remove-orphans
     - docker pull $BE_IMAGE_URI
