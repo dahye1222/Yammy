@@ -145,7 +145,7 @@ function UsedItemCreate() {
           className="submit-btn"
           disabled={Object.values(errors).some((msg) => msg)}
         >
-          등록하기
+          등록
         </button>
       </form>
     </div>
