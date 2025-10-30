@@ -66,7 +66,7 @@ function UsedItemCreate() {
     validate("description", description);
     validate("photo", photoIds);
 
-    // 하나라도 에러가 있으면 제출 중단
+    // 하나라도 유효하지 않으면 제출 불가능
     if (Object.values(errors).some((msg) => msg)) {
       alert("입력 조건을 모두 충족해야 합니다.");
       return;
