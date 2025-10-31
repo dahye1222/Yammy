@@ -19,6 +19,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
+
+// 토스 페이에 스켈레톤 코드 원본
 @Controller
 public class WidgetController {
 

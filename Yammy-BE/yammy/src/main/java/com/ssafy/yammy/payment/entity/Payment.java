@@ -1,36 +1,42 @@
 package com.ssafy.yammy.payment.entity;
+
 import com.ssafy.yammy.auth.entity.Member;
-
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.LocalDateTime;
-
-@Entity
-@Table(name = "payment")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table(name = "toss_payment")
 public class Payment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long paymentId;
+    @Column(name = "toss_id")
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    @Column(name = "order_id")
     private String orderId;
+
+    @Column(name = "payment_key")
     private String paymentKey;
-    private Integer amount;
+
+    @Column(name = "amount")
+    private Long amount;
+
+    @Column(name = "status")
     private String status;
 
-    private LocalDateTime requestedAt;
-    private LocalDateTime approvedAt;
+    @Column(name = "request_at")
+    private String requestedAt;
 
-    @Column(columnDefinition = "json")
-    private String failure; // 실패 시 JSON
+    @Column(name = "approved_at")
+    private String approvedAt;
+
+    @Column(name = "failure", columnDefinition = "TEXT")
+    private String failure; // JSON 문자열로 저장
 }

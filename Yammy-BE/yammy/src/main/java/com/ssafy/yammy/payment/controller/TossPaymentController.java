@@ -1,8 +1,11 @@
 package com.ssafy.yammy.payment.controller;
 
+import com.ssafy.yammy.auth.entity.Member;
+import com.ssafy.yammy.auth.repository.MemberRepository;
 import com.ssafy.yammy.config.JwtTokenProvider;
-import com.ssafy.yammy.payment.dto.PointResponse;
-import com.ssafy.yammy.payment.service.PointService;
+import com.ssafy.yammy.payment.dto.TossPaymentRequest;
+import com.ssafy.yammy.payment.dto.TossPaymentResponse;
+import com.ssafy.yammy.payment.service.TossPaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,31 +15,27 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-@Tag(name = "Point API", description = "얌 포인트 잔액 관련 API")
+@Tag(name = "Payment API", description = "얌 포인트 충전 및 결제 관련 API")
 @RestController
-@RequestMapping("/api/points")
+@RequestMapping("/api/payments")
 @RequiredArgsConstructor
-public class PointController {
+public class TossPaymentController {
 
-    private final PointService pointService;
+    private final TossPaymentService tosspaymentService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final MemberRepository memberRepository;
 
-    // 내 얌 포인트 조회
-    @Operation(summary = "내 얌 포인트 조회")
-    @GetMapping("/me")
-    public ResponseEntity<PointResponse> getMyPoint(HttpServletRequest request) {
-        Long memberId = extractMemberIdFromToken(request);
-        PointResponse response = pointService.getMyPoint(memberId);
-        return ResponseEntity.ok(response);
-    }
+    @Operation(summary = "얌 포인트 전환 확인")
+    @PostMapping("/confirm")
+    public ResponseEntity<TossPaymentResponse> confirmPayment(HttpServletRequest request, @RequestBody TossPaymentRequest tossRequest) {
 
-    // 포인트 차감
-    @Operation(summary = "얌 포인트 사용")
-    @PostMapping("/use")
-    public ResponseEntity<PointResponse> usePoint(HttpServletRequest request, @RequestParam Long amount) {
+        // 토큰 가져오기
         Long memberId = extractMemberIdFromToken(request);
-        PointResponse response = pointService.use(memberId, amount);
-        return ResponseEntity.ok(response);
+
+        // 토스 결제 승인 (테스트 키)
+        TossPaymentResponse tossResponse = tosspaymentService.confirmPayment(tossRequest);
+
+        return ResponseEntity.ok(tossResponse);
     }
 
     // 토큰 가져오기
