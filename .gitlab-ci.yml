@@ -10,142 +10,125 @@ variables:
   FRONTEND_DIR: Yammy-FE
   BACKEND_DIR: Yammy-BE/yammy
 
-# =========================================================
-# 🎯 Test_Build_BE: 테스트 환경 구성 및 빌드 (확인 대상)
-# =========================================================
 Test_Build_BE:
   stage: Test_Build
+  only:
+    - CI/CD     # 삭제 예정
+    - develop   # 삭제 예정
+    - master
   image: openjdk:17-jdk-slim
   tags:
-    - test-build # docker executore를 사용하는 새로 생성된 러너
+    - test-build
   services:
     - name: mysql:8.0
       alias: mysql-db
     - name: redis:latest
       alias: redis
-
   variables:
-    # 1. MySQL 서비스 컨테이너 자체 설정 변수
     MYSQL_DATABASE: testdb
     MYSQL_ROOT_PASSWORD: root_password
-
-    # 2. Spring Boot가 참조할 환경 변수 (GitLab CI에서 조합)
     DB_URL: jdbc:mysql://mysql-db:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul
     DB_USERNAME: root
     DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-
     SPRING_DATA_REDIS_HOST: redis
     SPRING_DATA_REDIS_PORT: 6379
     SPRING_DATA_REDIS_PASSWORD:
-
-    # 추가 변수들은 GitLab CI/CD Variables에 등록되어 사용된다고 가정
-
   before_script:
     - cd ${BACKEND_DIR}
     - chmod +x gradlew
-
-    # ⭐️ 추가됨: 기존 application.yml 파일 삭제 ⭐️
-    - echo "Deleting existing application.yml and creating CI version..."
+    - apt-get update -qq && apt-get install -y --no-install-recommends wait-for-it
+    - wait-for-it mysql-db:3306 -t 30 -- echo "MySQL is up and running!"
+    - wait-for-it redis:6379 -t 30 -- echo "Redis is up and running!"
+    - | 
+      MYSQL_HOST_IP=$(getent hosts mysql-db | awk '{ print $1 }');
+      if [ -z "$MYSQL_HOST_IP" ]; then 
+        MYSQL_HOST_IP="mysql-db"; 
+      fi;
+      export DB_URL=jdbc:mysql://${MYSQL_HOST_IP}:3306/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul
+    - export DB_URL=$DB_URL
+    - export DB_USERNAME=$DB_USERNAME
+    - export DB_PASSWORD=$DB_PASSWORD
     - rm -f src/main/resources/application.yml
-
-    # 핵심: CI용 YML 내용을 디스크에 application.yml로 생성
     - echo "$CI_APPLICATION_YML" > src/main/resources/application.yml
     - echo "application.yml created successfully with CI variables."
 
   script:
-    - ./gradlew clean build
-
-  artifacts:
-    when: on_success
-    paths:
-      - ${BACKEND_DIR}/build/libs/*.jar
-    expire_in: 1 week
+    - ./gradlew clean test
 
 FE_Image:
   stage: FE_Image
-  # ⭐️ image를 docker로 변경하여 build/push 명령을 사용할 수 있도록 합니다. ⭐️
+  only:
+    - CI/CD     # 삭제 예정
+    - develop   # 삭제 예정
+    - master
   image: docker:24.0.5
   tags:
     - test-build
   services:
     - name: docker:24.0.5-dind
-
   variables:
-    # ... (ECR 관련 변수) ...
     FE_IMAGE_TAG: frontend-latest
-    AWS_DEFAULT_REGION: ap-northeast-2
-    # ⭐️ 추가됨: DIND 서비스에 연결하기 위한 필수 설정 ⭐️
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
-
   script:
     - cd ${FRONTEND_DIR}
-
-    # 1. 빌드와 푸시를 하나의 스크립트에서 실행
-    # Docker 빌드에 필요한 Node 환경을 Dockerfile 내부에서 처리하도록 합니다.
-    # ECR 로그인 및 AWS CLI 설치는 docker:24.0.5 이미지에서 진행
     - apk add --no-cache python3 py3-pip
     - pip install awscli
-    - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-    - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+    - export AWS_ACCESS_KEY_ID
+    - export AWS_SECRET_ACCESS_KEY
+    - export AWS_DEFAULT_REGION
     - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
-
-    # 2. Docker 이미지 빌드 및 푸시
-    # FE_Image 잡은 이제 Node 환경을 Dockerfile 내의 멀티 스테이지 빌드로 처리합니다.
     - docker build -t $ECR_REPOSITORY_URI:$FE_IMAGE_TAG .
     - docker push $ECR_REPOSITORY_URI:$FE_IMAGE_TAG
 
 BE_Image:
   stage: BE_Image
-  image: docker:24.0.5
+  only:
+    - CI/CD     # 삭제 예정
+    - develop   # 삭제 예정
+    - master
+  image: openjdk:17-jdk-slim
   tags:
     - test-build
   services:
     - name: docker:24.0.5-dind
-
-  dependencies:
+  needs:
     - Test_Build_BE
-
   variables:
-    # ECR 및 AWS 인증 변수 (CI/CD Variables에 등록된 Secret 변수 사용)
-    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
-    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
-    AWS_DEFAULT_REGION: ap-northeast-2
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
-
-    # ⭐️ BE 이미지 태그 명시 ⭐️
     BE_IMAGE_TAG: backend-latest
-    PROD_APPLICATION_YML: $PROD_APPLICATION_YML # GitLab CI/CD Variables에 등록된 운영 YML 내용
-
-  before_script:
-    - cd ${BACKEND_DIR}
-
-    # 1. 운영 설정 파일 생성 (운영 환경 변수 참조 포함)
-    - echo "Creating production application-prod.yml..."
-    - echo "$PROD_APPLICATION_YML" > src/main/resources/application-prod.yml
-
-    # 2. ECR 로그인 및 AWS CLI 설치
-    - apk add --no-cache python3 py3-pip
-    - pip install awscli
-    - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-    - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-
-    # ECR 로그인 실행
-    - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
-
   script:
-    # 3. Docker 이미지 빌드 (Dockerfile은 Yammy_BE/yammy 안에 있습니다.)
-    # Dockerfile은 JAR 파일과 application-prod.yml을 이미지에 포함합니다.
+    - apt-get update -qq && apt-get install -y --no-install-recommends docker.io docker-compose
+    - apt-get install -y python3 python3-pip
+    - pip install awscli
+    - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
+    - cd ${BACKEND_DIR}
+    - chmod +x gradlew
+    - rm -f src/main/resources/application.yml
+    - echo "$PROD_APPLICATION_YML" > src/main/resources/application.yml
+    - echo "Production application-prod.yml created successfully."
+    - ./gradlew clean build -x test
+    - echo "Production JAR built successfully."
     - docker build -t $ECR_REPOSITORY_URI:$BE_IMAGE_TAG .
-
-    # 4. ECR에 푸시
     - docker push $ECR_REPOSITORY_URI:$BE_IMAGE_TAG
 
 Deploy:
   stage: Deploy
+  only:
+    - CI/CD     # 삭제 예정
+    - develop   # 삭제 예정
+    - master
+  tags:
+    - yammy-build
+  dependencies: []
+  image: ubuntu:latest
+  before_script:
+    - sudo apt-get update -qq
+    - sudo apt-get install -y awscli docker-compose
+    - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
   script:
-    - echo "Skipping Deploy for Test."
-  when: manual
-  allow_failure: true
-
+    - sudo -E docker-compose -f /home/ubuntu/docker-compose.yml down -v --remove-orphans
+    - docker pull $BE_IMAGE_URI
+    - docker pull $FE_IMAGE_URI
+    - sudo -E docker-compose -f /home/ubuntu/docker-compose.yml up -d
