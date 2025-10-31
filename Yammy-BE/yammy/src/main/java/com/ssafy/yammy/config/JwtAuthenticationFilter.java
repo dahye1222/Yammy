@@ -14,7 +14,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -34,6 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 공개 경로는 JWT 필터 건너뛰기
         String path = request.getRequestURI();
         if (path.startsWith("/api/v1/auth/") ||
+            path.startsWith("/api/oauth/") ||
             path.startsWith("/swagger-ui") ||
             path.startsWith("/v3/api-docs") ||
             path.startsWith("/api/v1/webhook/") ||
