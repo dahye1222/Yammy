@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+//const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = 'http://k13c205.p.ssafy/api/v1';
 
 // Axios 인스턴스 생성
 const authApi = axios.create({
