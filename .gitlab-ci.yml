@@ -73,7 +73,7 @@ FE_Image:
   script:
     - cd ${FRONTEND_DIR}
 
-    - echo "VITE_KAKAO_REST_API_KEY=\"${VITE_KAKAO_REST_API_KEY}\"" > .env
+    - echo "VITE_KAKAO_REST_API_KEY=${VITE_KAKAO_REST_API_KEY}" > .env
     - echo "생성된 .env 파일 내용:"
     - cat .env
 
