@@ -16,7 +16,8 @@ Test_Build_BE:
     - CI/CD     # 삭제 예정
     - develop   # 삭제 예정
     - master
-  image: openjdk:17-jdk-slim-buster
+  image: openjdk:17-oracle
+
   tags:
     - test-build
   services:
@@ -92,7 +93,8 @@ BE_Image:
     - CI/CD     # 삭제 예정
     - develop   # 삭제 예정
     - master
-  image: openjdk:17-jdk-slim-buster
+  image: openjdk:17-oracle
+
   tags:
     - test-build
   services:
