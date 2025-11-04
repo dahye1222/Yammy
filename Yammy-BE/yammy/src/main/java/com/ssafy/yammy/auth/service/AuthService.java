@@ -134,16 +134,26 @@ public class AuthService {
         refreshTokenRepository.deleteByLoginId(loginId);
     }
 
-    public String refresh(String loginId, String refreshToken) {
+    public String refresh(String accessToken, String refreshToken) {
+        // 만료된 Access Token에서 loginId 추출
+        String loginId = jwtTokenProvider.getLoginIdFromExpiredToken(accessToken);
+
+        // Redis에서 저장된 Refresh Token 가져오기
         String savedToken = refreshTokenRepository.findByLoginId(loginId);
         if (savedToken == null || !savedToken.equals(refreshToken)) {
             throw new IllegalArgumentException("유효하지 않은 RefreshToken입니다.");
+        }
+
+        // Refresh Token이 만료되었는지 확인
+        if (jwtTokenProvider.isTokenExpired(refreshToken)) {
+            throw new IllegalArgumentException("RefreshToken이 만료되었습니다. 다시 로그인해주세요.");
         }
 
         // DB에서 유저 정보 가져오기
         Member member = memberRepository.findById(loginId)
             .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 ID입니다."));
 
+        // 새 Access Token 생성
         return jwtTokenProvider.createAccessToken(
             member.getMemberId(),
             member.getId(),
