@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../stores/authStore";
+import { getTeamColors } from "../../sns/utils/teamColors";
 import "./NavigationBar.css";
 
 const NavigationBarTop = () => {
   const navigate = useNavigate();
   const { isLoggedIn, user, logOut, initialize } = useAuthStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [teamColors] = useState(getTeamColors());
 
   // 초기화: localStorage에서 로그인 상태 복원
   useEffect(() => {
@@ -27,8 +29,8 @@ const NavigationBarTop = () => {
   };
 
   return (
-    <nav className="nav-bar-top">
-      <h1 className="sns-logo" onClick={() => navigate('/')}>Yammy</h1>
+    <nav className="nav-bar-top" style={{ backgroundColor: teamColors.bgColor }}>
+      <h1 className="sns-logo" style={{ color: teamColors.textColor }} onClick={() => navigate('/')}>Yammy</h1>
       <div className="header-right">
         {isLoggedIn ? (
           <div className="user-menu-wrapper">

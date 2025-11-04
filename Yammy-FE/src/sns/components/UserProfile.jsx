@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getUserPosts, getFollowStatus, followUser, unfollowUser } from '../api/snsApi';
 import FollowListModal from './FollowListModal';
+import { getTeamColors } from '../utils/teamColors';
 import '../styles/UserProfile.css';
 
 const UserProfile = () => {
@@ -18,12 +19,18 @@ const UserProfile = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [showFollowModal, setShowFollowModal] = useState(false);
     const [followModalTab, setFollowModalTab] = useState('followers');
+    const [teamColors, setTeamColors] = useState(getTeamColors());
 
     // 프로필 데이터 로드
     useEffect(() => {
         loadProfile();
         loadFollowStatus();
     }, [userId]);
+
+    // 팀 컬러 업데이트
+    useEffect(() => {
+        setTeamColors(getTeamColors());
+    }, []);
 
     const loadProfile = async () => {
         setIsLoading(true);
@@ -113,10 +120,10 @@ const UserProfile = () => {
     return (
         <div className="user-profile">
             {/* 헤더 */}
-            <div className="profile-header">
-                <button onClick={goBack} className="back-btn">←</button>
-                <h1 className="header-title">프로필</h1>
-                <button onClick={() => setShowOptions(true)} className="options-btn">⋮</button>
+            <div className="profile-header" style={{ backgroundColor: teamColors.bgColor }}>
+                <button onClick={goBack} className="back-btn" style={{ color: teamColors.textColor }}>←</button>
+                <h1 className="header-title" style={{ color: teamColors.textColor }}>프로필</h1>
+                <button onClick={() => setShowOptions(true)} className="options-btn" style={{ color: teamColors.textColor }}>⋮</button>
             </div>
 
             {/* 프로필 정보 */}

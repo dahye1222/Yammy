@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getPost, getComments, createComment, toggleCommentLike, deleteComment as deleteCommentApi } from '../api/snsApi';
+import { getTeamColors } from '../utils/teamColors';
 import '../styles/CommentPage.css';
 
 // 시간 포맷 헬퍼 함수
@@ -29,6 +30,7 @@ const CommentPage = () => {
     const [showCommentMenu, setShowCommentMenu] = useState(false);
     const [selectedCommentId, setSelectedCommentId] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [teamColors] = useState(getTeamColors());
 
     // 로컬스토리지에서 사용자 프로필 이미지 가져오기
     const userProfileImage = localStorage.getItem('profileImage') || 'https://via.placeholder.com/40';
@@ -132,12 +134,12 @@ const CommentPage = () => {
     return (
         <div className="comment-page">
             {/* 헤더 */}
-            <div className="comment-header">
-                <button onClick={goBack} className="back-btn">
+            <div className="comment-header" style={{ backgroundColor: teamColors.bgColor }}>
+                <button onClick={goBack} className="back-btn" style={{ color: teamColors.textColor }}>
                     ←
                 </button>
-                <h1 className="header-title">댓글</h1>
-                <button className="menu-btn">⋮</button>
+                <h1 className="header-title" style={{ color: teamColors.textColor }}>댓글</h1>
+                <button className="menu-btn" style={{ color: teamColors.textColor }}>⋮</button>
             </div>
 
             {/* 댓글 목록 */}
