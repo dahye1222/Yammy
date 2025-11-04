@@ -3,7 +3,7 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
-    background-color: #ffffff;
+    background-color: #FFF9E6;
 }
 
 /* 헤더 */
@@ -13,7 +13,7 @@
     justify-content: space-between;
     padding: 16px;
     background-color: #ffffff;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: none;
     position: sticky;
     top: 0;
     z-index: 30;
@@ -119,7 +119,11 @@
     display: flex;
     gap: 12px;
     padding: 16px;
-    border-bottom: 1px solid #f9fafb;
+    background-color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    margin: 8px 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .comment-avatar {
@@ -128,6 +132,7 @@
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
+    border: none;
 }
 
 .comment-content-wrapper {
@@ -175,7 +180,7 @@
 }
 
 .like-btn.liked {
-    color: #ef4444;
+    color: #FF5722;
 }
 
 /* 답글 */
@@ -198,6 +203,7 @@
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
+    border: none;
 }
 
 .reply-header-info {
@@ -241,6 +247,7 @@
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
+    border: none;
 }
 
 .input-wrapper {
@@ -269,8 +276,8 @@
 
 .input-wrapper textarea:focus {
     outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
 }
 
 /* textarea 스크롤바 숨김 */
@@ -284,7 +291,7 @@
 }
 
 .submit-btn {
-    background-color: #6366f1;
+    background-color: #FF9800;
     color: white;
     border: none;
     width: 40px;
@@ -305,7 +312,7 @@
 }
 
 .submit-btn:not(:disabled):hover {
-    background-color: #4f46e5;
+    background-color: #F57C00;
     transform: scale(1.05);
 }
 
@@ -356,7 +363,7 @@
 }
 
 .menu-option.delete {
-    color: #ef4444;
+    color: #FF5722;
 }
 
 .cancel-btn {

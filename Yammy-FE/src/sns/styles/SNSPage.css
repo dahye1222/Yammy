@@ -1,6 +1,6 @@
 /* SNS 페이지 전체 */
 .sns-page {
-    background-color: #f9fafb;
+    background-color: #FFF9E6;
     min-height: 100vh;
     position: relative;
 }
@@ -12,13 +12,13 @@
     right: 20px;
     width: 48px;
     height: 48px;
-    background-color: #6366f1;
+    background-color: #FF9800;
     color: white;
     border: none;
     border-radius: 50%;
     font-size: 20px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
     transition: all 0.3s ease;
     z-index: 1000;
     display: flex;
@@ -27,9 +27,9 @@
 }
 
 .floating-create-btn:hover {
-    background-color: #4f46e5;
+    background-color: #F57C00;
     transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.5);
 }
 
 .floating-create-btn:active {
@@ -39,7 +39,7 @@
 .sns-logo {
     font-size: 1.5rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #6366f1 0%, #f59e0b 100%);
+    background: linear-gradient(135deg, #4CAF50 0%, #FF9800 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -55,7 +55,7 @@
 /* 로그인 버튼 */
 .login-button {
     padding: 0.5rem 1rem;
-    background-color: #6366f1;
+    background-color: #4CAF50;
     color: white;
     border: none;
     border-radius: 0.5rem;
@@ -66,7 +66,7 @@
 }
 
 .login-button:hover {
-    background-color: #4f46e5;
+    background-color: #45A049;
 }
 
 /* 사용자 메뉴 */
@@ -92,7 +92,7 @@
 
 .user-button i.fa-user-circle {
     font-size: 1.25rem;
-    color: #6366f1;
+    color: #4CAF50;
 }
 
 .user-nickname {
@@ -183,12 +183,12 @@
     width: 64px;
     height: 64px;
     border-radius: 50%;
-    border: 2px solid #6366f1;
+    border: none;
     object-fit: cover;
 }
 
 .story-avatar.add-story {
-    background: linear-gradient(135deg, #6366f1 0%, #f59e0b 100%);
+    background: linear-gradient(135deg, #4CAF50 0%, #FF9800 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -210,8 +210,10 @@
 /* 게시물 카드 */
 .post-card {
     background-color: #ffffff;
-    border-bottom: 1px solid #f3f4f6;
-    margin-bottom: 8px;
+    border: none;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* 게시물 헤더 */
@@ -403,7 +405,7 @@
 }
 
 .action-btn.liked {
-    color: #ef4444;
+    color: #FF5722;
 }
 
 .action-icon {
@@ -426,12 +428,12 @@
 }
 
 .follow-btn:not(.following) {
-    background-color: #6366f1;
+    background-color: #4CAF50;
     color: white;
 }
 
 .follow-btn:not(.following):hover {
-    background-color: #4f46e5;
+    background-color: #45A049;
 }
 
 .follow-btn.following {
@@ -477,7 +479,7 @@
     width: 40px;
     height: 40px;
     border: 4px solid #f3f4f6;
-    border-top: 4px solid #6366f1;
+    border-top: 4px solid #4CAF50;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -517,7 +519,7 @@
 
 .empty-message button {
     padding: 10px 20px;
-    background-color: #6366f1;
+    background-color: #4CAF50;
     color: white;
     border: none;
     border-radius: 8px;
@@ -528,5 +530,5 @@
 }
 
 .empty-message button:hover {
-    background-color: #4f46e5;
+    background-color: #45A049;
 }
