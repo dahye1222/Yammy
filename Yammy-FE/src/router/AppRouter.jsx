@@ -1,20 +1,23 @@
-import { Routes, Route } from "react-router-dom";
-import SNSPage from "../sns/SNSPage";
-import CommentPage from "../sns/components/CommentPage";
-import UserProfile from "../sns/components/UserProfile";
+import { Routes, Route } from "react-router-dom"
+import SNSPage from "../sns/SNSPage"
+import CommentPage from "../sns/components/CommentPage"
+import UserProfile from "../sns/components/UserProfile"
+import UsedItemPage from "../useditem/UsedItemPage"
 import PostCreate from "../sns/components/PostCreate";
-import UsedItemPage from "../useditem/UsedItemPage";
 import UsedItemDetail from "../useditem/components/UsedItemDetail"
 import UsedItemEdit from "../useditem/components/UsedItemEdit"
 import UsedItemCreate from "../useditem/components/UsedItemCreate"
 import UsedItemChat from "../chat/components/UsedItemChat"
 import MyPoint from "../payment/components/Mypoint"
-import LoginPage from "../auth/LoginPage";
-import SignupPage from "../auth/SignupPage";
-import KakaoCallbackPage from "../auth/KakaoCallbackPage";
+import CheckoutPage from "../payment/pages/CheckoutPage"
+import SuccessPage from "../payment/pages/SuccessPage"
+import FailPage from "../payment/pages/FailPage"
+import LoginPage from "../auth/LoginPage"
+import SignupPage from "../auth/SignupPage"
+import KakaoCallbackPage from "../auth/KakaoCallbackPage"
+import ProtectedRoute from "./ProtectedRoute"
 import ChangePasswordPage from "../auth/ChangePasswordPage";
 import DeleteAccountPage from "../auth/DeleteAccountPage";
-import ProtectedRoute from "./ProtectedRoute";
 
 export default function AppRouter() {
   return (
@@ -41,10 +44,13 @@ export default function AppRouter() {
       <Route path="/useditem/edit/:id" element={<UsedItemEdit />} />
       <Route path="/useditem/create" element={<UsedItemCreate />} />
       <Route path="/useditem/:id/chat" element={<UsedItemChat />} />
-
+      
       {/* Point Routes */}
       <Route path="/mypoint" element={<MyPoint />} />
-    
+      <Route path="/checkout" element={<CheckoutPage />} />
+      <Route path="/success" element={<SuccessPage />} />
+      <Route path="/fail" element={<FailPage />} />
+     
     </Routes>
   );
 }
