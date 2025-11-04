@@ -38,7 +38,7 @@ export const completeUpload = async (completeRequest) => {
 }
 
 
-// 사진 삭제 
+// 사진 삭제
 export const deletePhoto = async (photoId) => {
   await axiosWithAuth.delete(`/${photoId}`)
 }
