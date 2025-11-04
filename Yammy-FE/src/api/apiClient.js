@@ -33,13 +33,20 @@ apiClient.interceptors.response.use(
 
     // 401 에러이고 재시도하지 않은 경우
     if (error.response?.status === 401 && !originalRequest._retry) {
+      console.log('[apiClient] 401 error detected, attempting token refresh');
       originalRequest._retry = true;
 
       const refreshToken = localStorage.getItem('refreshToken');
       const accessToken = localStorage.getItem('accessToken');
 
+      console.log('[apiClient] Tokens exist:', {
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken
+      });
+
       if (refreshToken && accessToken) {
         try {
+          console.log('[apiClient] Calling /auth/refresh endpoint');
           // 리프레시 토큰으로 액세스 토큰 재발급 (Header 방식)
           const response = await axios.post(
             `${API_BASE_URL}/auth/refresh`,
@@ -53,6 +60,7 @@ apiClient.interceptors.response.use(
           );
 
           const newAccessToken = response.data.accessToken;
+          console.log('[apiClient] Token refresh successful');
 
           // 새 토큰 저장
           localStorage.setItem('accessToken', newAccessToken);
@@ -62,7 +70,8 @@ apiClient.interceptors.response.use(
           return apiClient(originalRequest);
         } catch (refreshError) {
           // 리프레시 실패 시 로그아웃 처리
-          console.error('토큰 재발급 실패:', refreshError);
+          console.error('[apiClient] 토큰 재발급 실패:', refreshError);
+          console.error('[apiClient] Error response:', refreshError.response?.data);
           localStorage.clear();
           alert('세션이 만료되었습니다. 다시 로그인해주세요.');
           window.location.href = '/login';
@@ -70,6 +79,7 @@ apiClient.interceptors.response.use(
         }
       } else {
         // 리프레시 토큰이나 accessToken이 없는 경우
+        console.log('[apiClient] Missing tokens, redirecting to login');
         localStorage.clear();
         alert('로그인이 필요한 서비스입니다.');
         window.location.href = '/login';

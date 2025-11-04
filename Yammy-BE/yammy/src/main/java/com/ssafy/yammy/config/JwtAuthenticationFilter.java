@@ -35,10 +35,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 공개 경로는 JWT 필터 건너뛰기
         String path = request.getRequestURI();
-        if (path.startsWith("/api/v1/auth/signup") ||
-                path.startsWith("/api/v1/auth/login") ||
-                path.startsWith("/api/v1/auth/email") ||
-                path.startsWith("/api/v1/auth/refresh") ||
+        if (path.startsWith("/api/auth/signup") ||
+                path.startsWith("/api/auth/login") ||
+                path.startsWith("/api/auth/email") ||
+                path.startsWith("/api/auth/refresh") ||
                 path.startsWith("/api/oauth/") ||
                 path.startsWith("/swagger-ui") ||
                 path.startsWith("/v3/api-docs") ||
