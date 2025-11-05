@@ -16,7 +16,7 @@ const NavigationBarTop = () => {
   const [balance, setBalance] = useState(null); 
   const [error, setError] = useState(null); 
 
-  // Add the format function
+  // Add the format function11
   const format = (num) => num.toLocaleString(); 
 
   // Initialize and restore login state from localStorage
