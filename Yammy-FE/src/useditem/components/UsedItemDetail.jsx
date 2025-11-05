@@ -77,7 +77,7 @@ function UsedItemDetail() {
         <h1 className="detail-title">상품 상세</h1>
       </div>
 
-      {/* 이미지 */}
+      {/* 이미지 슬라이더 */}
       <div className="detail-image-slider">
         {item.imageUrls?.length > 0 ? (
           <>
@@ -96,6 +96,18 @@ function UsedItemDetail() {
                   className={`detail-slider-dot ${index === currentIndex ? "active" : ""}`}
                   onClick={() => setCurrentIndex(index)}
                 ></div>
+              ))}
+            </div>
+            {/* 썸네일 이미지 (사진 바로 아래에 배치) */}
+            <div className="detail-thumbnail-container">
+              {item.imageUrls?.map((url, index) => (
+                <div
+                  key={index}
+                  className={`detail-thumbnail ${index === currentIndex ? "active" : ""}`}
+                  onClick={() => setCurrentIndex(index)}
+                >
+                  <img src={url} alt={`${item.title}-thumb-${index}`} />
+                </div>
               ))}
             </div>
           </>
@@ -137,21 +149,24 @@ function UsedItemDetail() {
           </div>
         </div>
 
-        {/* 가격 */}
-        <p className="detail-price">{item.price?.toLocaleString()} 원</p>
+        {/* 가격과 팀명 구분 */}
+        <div className="detail-price-team">
+          {/* 가격 */}
+          <p className="detail-price">{item.price?.toLocaleString()} 원</p>
 
-        {/* 팀명 */}
-        {item.team && (
-          <p
-            className="detail-team-tag"
-            style={{
-              backgroundColor: teamColors.bgColor,
-              color: teamColors.textColor,
-            }}
-          >
-            {teamNames[item.team] || item.team}
-          </p>
-        )}
+          {/* 팀명 */}
+          {item.team && (
+            <p
+              className="detail-team-tag"
+              style={{
+                backgroundColor: teamColors.bgColor,
+                color: teamColors.textColor,
+              }}
+            >
+              {teamNames[item.team] || item.team}
+            </p>
+          )}
+        </div>
 
         {/* 내용 */}
         <p className="detail-description">{item.description}</p>

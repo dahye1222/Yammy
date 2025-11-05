@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { loadTossPayments } from "@tosspayments/tosspayments-sdk"
+import { getTeamColors } from "../../sns/utils/teamColors" 
 
 const clientKey = import.meta.env.VITE_TOSS_CLIENT_KEY
 const customerKey = import.meta.env.VITE_TOSS_CUSTOMER_KEY
@@ -8,6 +9,11 @@ function CheckoutPage() {
   const [ready, setReady] = useState(false)
   const [widgets, setWidgets] = useState(null)
   const [amount, setAmount] = useState(5000)
+  const [teamColors, setTeamColors] = useState(getTeamColors())
+
+  useEffect(() => {
+    setTeamColors(getTeamColors())
+  }, [])
 
   // 페이지가 처음 열리면 toss 결제 위젯 불러오기
   useEffect(() => {
@@ -54,16 +60,6 @@ function CheckoutPage() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2>얌 포인트 충전</h2>
-
-      {/* 금액 입력 */}
-      <input
-        type="number"
-        value={amount}
-        onChange={(e) => setAmount(Number(e.target.value))}
-        placeholder="충전할 금액 입력"
-      />
-
       {/* 결제 UI */}
       <div id="payment-box" style={{ marginTop: "20px" }}></div>
       <div id="agreement-box" style={{ marginTop: "10px" }}></div>
@@ -73,14 +69,15 @@ function CheckoutPage() {
         onClick={handlePayment}
         disabled={!ready}
         style={{
-          marginTop: "20px",
-          backgroundColor: "#ff7f50",
+          marginTop: "10px",
+          marginLeft: "20px",
           color: "white",
           border: "none",
           padding: "10px 20px",
           borderRadius: "8px",
           fontWeight: "600",
-          cursor: ready ? "pointer" : "not-allowed"
+          cursor: ready ? "pointer" : "not-allowed",
+          backgroundColor: teamColors.bgColor
         }}
       >
         결제하기
