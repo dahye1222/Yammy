@@ -23,6 +23,13 @@ import DeleteAccountPage from "../auth/DeleteAccountPage";
 import MyPage from "../mypage/MyPage";
 import TicketListPage from "../ticket/pages/TicketListPage";
 import TicketCreatePage from "../ticket/pages/TicketCreatePage";
+import TestChatPage from "../chatgames/pages/TestChatPage";
+import ChatGamePage from "../chatgames/pages/ChatGamePage";
+import ChatRoomListPage from "../chatgames/pages/ChatRoomListPage";
+import AdminChatPage from "../chatgames/pages/AdminChatPage";
+import AdminRoute from "./AdminRoute"; 
+
+
 
 export default function AppRouter() {
   return (
@@ -67,7 +74,14 @@ export default function AppRouter() {
       {/* Match Routes */}
       <Route path="/match" element={<MatchResultPage />} />
       <Route path="/match/:matchcode" element={<MatchResultDetailPage />} />
+      
+      {/* 임시챗팅방 */}
+      <Route path="/test-chat" element={<TestChatPage />} />
 
+      {/* Chat Game Routes*/}
+      <Route path="/cheerup" element={<ProtectedRoute><ChatRoomListPage /></ProtectedRoute>} />
+      <Route path="/cheerup/:roomKey" element={<ProtectedRoute><ChatGamePage /></ProtectedRoute>} />
+      <Route path="/admin/chat" element={<AdminRoute><AdminChatPage /></AdminRoute>} />
     </Routes>
   );
 }
