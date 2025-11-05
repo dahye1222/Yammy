@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTeamColors } from '../../sns/utils/teamColors';
 import { createTicket } from '../api/ticketApi';
+import { getRecentMatches } from '../api/matchApi';
 import '../styles/TicketCreatePage.css';
 
 const TicketCreatePage = () => {
@@ -9,6 +10,7 @@ const TicketCreatePage = () => {
     const teamColors = getTeamColors();
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState({
+        matchcode: '',
         game: '',
         date: '',
         location: '',
@@ -22,6 +24,9 @@ const TicketCreatePage = () => {
         photoPreview: null,
     });
     const [showLocationModal, setShowLocationModal] = useState(false);
+    const [showMatchModal, setShowMatchModal] = useState(false);
+    const [matches, setMatches] = useState([]);
+    const [loadingMatches, setLoadingMatches] = useState(false);
 
     // 경기장 목록
     const stadiums = [
@@ -67,6 +72,40 @@ const TicketCreatePage = () => {
             location: stadium
         }));
         setShowLocationModal(false);
+    };
+
+    const loadMatches = async () => {
+        setLoadingMatches(true);
+        try {
+            const response = await getRecentMatches(0, 50);
+            setMatches(response.content || response);
+        } catch (error) {
+            console.error('경기 목록 불러오기 실패:', error);
+            setMatches([]);
+        } finally {
+            setLoadingMatches(false);
+        }
+    };
+
+    const handleMatchModalOpen = () => {
+        setShowMatchModal(true);
+        if (matches.length === 0) {
+            loadMatches();
+        }
+    };
+
+    const handleMatchSelect = (match) => {
+        setFormData(prev => ({
+            ...prev,
+            matchcode: match.matchcode,
+            game: `${match.away} vs ${match.home}`,
+            date: match.matchdate,
+            location: match.place || '',
+            awayScore: match.awayScore || '',
+            homeScore: match.homeScore || '',
+            type: '야구'
+        }));
+        setShowMatchModal(false);
     };
 
     const nextStep = () => {
@@ -150,9 +189,23 @@ const TicketCreatePage = () => {
                                 type="text"
                                 name="game"
                                 value={formData.game}
-                                onChange={handleChange}
-                                placeholder="예시: 대한민국 vs 우리나라"
+                                onClick={handleMatchModalOpen}
+                                placeholder="KBO 경기를 선택하거나 직접 입력하세요"
+                                readOnly
                             />
+                            <button
+                                type="button"
+                                className="direct-input-toggle-btn"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const input = e.target.previousSibling;
+                                    input.readOnly = false;
+                                    input.focus();
+                                }}
+                                style={{ marginTop: '8px', fontSize: '12px', color: teamColors.bgColor }}
+                            >
+                                직접 입력하기
+                            </button>
                         </div>
 
                         <div className="form-group">
@@ -294,6 +347,49 @@ const TicketCreatePage = () => {
                     </div>
                 )}
             </div>
+
+            {/* 경기 선택 모달 */}
+            {showMatchModal && (
+                <div className="location-modal" onClick={() => setShowMatchModal(false)}>
+                    <div className="location-modal-content" onClick={(e) => e.stopPropagation()}>
+                        <button className="modal-close" onClick={() => setShowMatchModal(false)}>✕</button>
+                        <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 700 }}>KBO 경기 선택</h3>
+                        {loadingMatches ? (
+                            <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                                경기 목록을 불러오는 중...
+                            </div>
+                        ) : matches.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                                조회된 경기가 없습니다.
+                            </div>
+                        ) : (
+                            <div className="stadium-list">
+                                {matches.map(match => (
+                                    <div
+                                        key={match.matchcode}
+                                        className="stadium-item match-item"
+                                        onClick={() => handleMatchSelect(match)}
+                                    >
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontWeight: 700, fontSize: '15px', marginBottom: '4px' }}>
+                                                {match.away} vs {match.home}
+                                            </div>
+                                            <div style={{ fontSize: '12px', color: '#666' }}>
+                                                {match.matchdate} • {match.place}
+                                            </div>
+                                            {(match.awayScore !== null && match.homeScore !== null) && (
+                                                <div style={{ fontSize: '13px', color: teamColors.bgColor, marginTop: '4px', fontWeight: 600 }}>
+                                                    스코어: {match.awayScore} : {match.homeScore}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* 경기장 선택 모달 */}
             {showLocationModal && (

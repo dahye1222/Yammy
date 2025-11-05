@@ -339,3 +339,25 @@
 .direct-input-btn:hover {
     filter: brightness(1.1);
 }
+
+/* 경기 선택 모달 */
+.match-item {
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.match-item:last-child {
+    border-bottom: none;
+}
+
+.match-item:hover {
+    background-color: #f9fafb;
+}
+
+.direct-input-toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+}
