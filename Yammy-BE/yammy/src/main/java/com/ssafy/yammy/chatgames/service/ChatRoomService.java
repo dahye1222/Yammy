@@ -42,7 +42,7 @@ public class ChatRoomService {
                 .awayTeam(request.getAwayTeam())
                 .doubleHeader(request.getDoubleHeader() != null ? request.getDoubleHeader() : false)
                 .startAt(request.getStartAt())
-                .status(RoomStatus.DRAFT)
+                .status(RoomStatus.ACTIVE)
                 .build();
 
         ChatRoom saved = chatRoomRepository.save(chatRoom);

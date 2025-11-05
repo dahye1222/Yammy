@@ -38,7 +38,8 @@ public class ChatRoom {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private RoomStatus status;
+    @Builder.Default
+    private RoomStatus status = RoomStatus.ACTIVE;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -47,7 +48,7 @@ public class ChatRoom {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         if (this.status == null) {
-            this.status = RoomStatus.DRAFT;
+            this.status = RoomStatus.ACTIVE;
         }
     }
 }
