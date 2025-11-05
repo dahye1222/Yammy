@@ -5,8 +5,8 @@ import "../styles/usedItem.css"
 function UsedItemSearch({ onSearch }) {
   const [keyword, setKeyword] = useState("")
   const [team, setTeam] = useState("")
-  const [teamColors, setTeamColors] = useState(getTeamColors()) // 초기 색상
-
+  const [teamColors, setTeamColors] = useState(getTeamColors()) 
+  
   // 로그인한 유저의 팀 컬러 반영
   useEffect(() => {
     setTeamColors(getTeamColors())
