@@ -35,7 +35,7 @@ public class TicketController {
     public ResponseEntity<PhotoUploadResponse> getPresignedUrl(
             @RequestParam(defaultValue = "image/jpeg") String contentType) {
 
-        List<PhotoUploadResponse> responses = photoService.generatePresignedUrls(1, contentType);
+        List<PhotoUploadResponse> responses = photoService.generatePresignedUrls(1, contentType, "ticket");
         return ResponseEntity.ok(responses.get(0));
     }
 
@@ -54,8 +54,8 @@ public class TicketController {
 
         String photoUrl = null;
         if (photo != null && !photo.isEmpty()) {
-            // S3에 사진 업로드
-            photoUrl = photoService.uploadPhoto(photo);
+            // S3에 사진 업로드 (ticket 폴더)
+            photoUrl = photoService.uploadPhoto(photo, "ticket");
         }
 
         TicketResponse response = ticketService.createTicket(memberId, request, photoUrl);
@@ -109,7 +109,8 @@ public class TicketController {
 
         String photoUrl = null;
         if (photo != null && !photo.isEmpty()) {
-            photoUrl = photoService.uploadPhoto(photo);
+            // S3에 사진 업로드 (ticket 폴더)
+            photoUrl = photoService.uploadPhoto(photo, "ticket");
         }
 
         TicketResponse response = ticketService.updateTicket(ticketId, memberId, request, photoUrl);
