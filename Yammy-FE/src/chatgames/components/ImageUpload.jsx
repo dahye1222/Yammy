@@ -5,6 +5,24 @@ import "../styles/ImageUpload.css";
 export default function ImageUpload({ roomKey }) {
   const fileRef = useRef(null);
 
+  const compressImage = async (file) => {
+    const options = {
+      maxSizeMB: 1, // 최대 1MB
+      maxWidthOrHeight: 1920, // 최대 1920px
+      useWebWorker: true, // 성능 향상
+    };
+
+    try {
+      console.log("원본 크기:", (file.size / 1024 / 1024).toFixed(2), "MB");
+      const compressedFile = await imageCompression(file, options);
+      console.log("압축 후 크기:", (compressedFile.size / 1024 / 1024).toFixed(2), "MB");
+      return new File([compressedFile], file.name, { type: compressedFile.type }); // 이름 유지
+    } catch (error) {
+      console.error("이미지 압축 실패:", error);
+      return file; // 압축 실패 시 원본 사용
+    }
+  };
+
   const handleSelect = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -15,9 +33,20 @@ export default function ImageUpload({ roomKey }) {
     }
 
     try {
-      await chatMessageApi.uploadImage(roomKey, file);
+      // ★ 추가: 압축 수행
+      const compressedFile = await compressImage(file);
+
+      // 10MB 초과 시 차단 (압축 후 기준)
+      if (compressedFile.size > 10 * 1024 * 1024) {
+        alert("파일 크기는 10MB 이하만 가능합니다.");
+        return;
+      }
+
+      // 기존 업로드 호출
+      await chatMessageApi.uploadImage(roomKey, compressedFile);
     } catch (err) {
       alert("업로드 실패");
+      console.error(err);
     } finally {
       fileRef.current.value = "";
     }
