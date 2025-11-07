@@ -144,7 +144,7 @@ function UsedItemDetail() {
                 <button className="detail-text-btn" onClick={handleDelete}>삭제</button>
               </>
             ) : (
-              <button className="detail-chat-btn" onClick={handleChat}>채팅하기</button>
+              <button className="detail-chat-btn" onClick={handleChat}>채팅</button>
             )}
           </div>
         </div>

@@ -45,13 +45,15 @@ const NavigationBarTop = () => {
 
   const goMyPoint = () => navigate("/mypoint");
 
+  const goChatList = () => navigate("/chatlist");
+
   const shouldShowBalanceButton =
     isLoggedIn &&
-    (location.pathname === "/useditem" || location.pathname === "/mypoint");
+    (location.pathname.startsWith("/useditem") || location.pathname === "/mypoint" || location.pathname === "/chatlist");
 
-  // ✅ 페이지별 로고 변경
+  // 페이지별 로고 변경
   const currentLogo =
-    location.pathname === "/useditem" || location.pathname === "/mypoint"
+    location.pathname.startsWith("/useditem") || location.pathname === "/mypoint" || location.pathname === "/chatlist"
       ? gugong
       : logo;
 
@@ -68,12 +70,16 @@ const NavigationBarTop = () => {
               <div className="ypay-logo-circle">⚾</div>
               <span className="ypay-balance">
                 {balance !== null
-                  ? `${format(balance)}원`
+                  ? `${format(balance)}얌`
                   : error
                   ? "오류"
                   : "로딩 중..."}
               </span>
             </div>
+            <button className="chatlist-btn" onClick={goChatList}>
+              채팅방
+            </button>
+
             <button className="ypay-charge-btn" onClick={goMyPoint}>
               충전하기
             </button>
