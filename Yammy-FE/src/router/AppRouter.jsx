@@ -8,6 +8,7 @@ import UsedItemDetail from "../useditem/components/UsedItemDetail"
 import UsedItemEdit from "../useditem/components/UsedItemEdit"
 import UsedItemCreate from "../useditem/components/UsedItemCreate"
 import UsedItemChatPage from "../useditemchat/components/UsedItemChatPage"
+import UsedItemChatList from "../useditemchat/components/UsedItemChatList"
 import MyPoint from "../payment/components/Mypoint"
 import MatchResultPage from "../match/MatchResultPage";
 import MatchResultDetailPage from "../match/components/MatchResultDetailPage";
@@ -28,8 +29,6 @@ import ChatGamePage from "../chatgames/pages/ChatGamePage";
 import ChatRoomListPage from "../chatgames/pages/ChatRoomListPage";
 import AdminChatPage from "../chatgames/pages/AdminChatPage";
 import AdminRoute from "./AdminRoute"; 
-
-
 
 export default function AppRouter() {
   return (
@@ -82,6 +81,7 @@ export default function AppRouter() {
       <Route path="/cheerup" element={<ProtectedRoute><ChatRoomListPage /></ProtectedRoute>} />
       <Route path="/cheerup/:roomKey" element={<ProtectedRoute><ChatGamePage /></ProtectedRoute>} />
       <Route path="/admin/chat" element={<AdminRoute><AdminChatPage /></AdminRoute>} />
+      <Route path="/chatlist" element={<UsedItemChatList />} />
     </Routes>
   );
 }
