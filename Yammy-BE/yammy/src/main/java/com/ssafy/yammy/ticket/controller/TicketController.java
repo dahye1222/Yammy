@@ -47,18 +47,14 @@ public class TicketController {
     public ResponseEntity<TicketResponse> createTicket(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestPart("ticket") TicketRequest request,
-            @RequestPart(value = "photo", required = false) MultipartFile photo) {
+            @RequestPart(value = "photo", required = false) MultipartFile photo,
+            @RequestParam(value = "mintNft", required = false, defaultValue = "false") boolean mintNft) {
 
         Long memberId = userDetails.getMemberId();
-        log.info("티켓 발급 요청 - memberId: {}, game: {}", memberId, request.getGame());
+        log.info("티켓 발급 요청 - memberId: {}, game: {}, mintNft: {}", memberId, request.getGame(), mintNft);
 
-        String photoUrl = null;
-        if (photo != null && !photo.isEmpty()) {
-            // S3에 사진 업로드 (ticket 폴더)
-            photoUrl = photoService.uploadPhoto(photo, "ticket");
-        }
-
-        TicketResponse response = ticketService.createTicket(memberId, request, photoUrl);
+        // 모든 사진은 Pinata IPFS에 저장됨 (S3 사용 안 함)
+        TicketResponse response = ticketService.createTicketWithPhoto(memberId, request, photo, mintNft);
         return ResponseEntity.ok(response);
     }
 

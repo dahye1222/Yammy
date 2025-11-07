@@ -70,6 +70,9 @@ public class Member {
     @Column(name = "kakao_id", unique = true)
     private String kakaoId;
 
+    @Column(name = "wallet_address", length = 42)
+    private String walletAddress;  // Ethereum 지갑 주소 (0x...)
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
