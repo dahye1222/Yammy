@@ -98,7 +98,7 @@ function UsedItemDetail() {
                 ></div>
               ))}
             </div>
-            {/* 썸네일 이미지 */}
+            {/* 썸네일 이미지 (사진 바로 아래에 배치) */}
             <div className="detail-thumbnail-container">
               {item.imageUrls?.map((url, index) => (
                 <div
@@ -137,24 +137,22 @@ function UsedItemDetail() {
             </div>
           </div>
 
-         <div className="detail-seller-actions">
-            {/* 판매자에게만 수정/삭제 표시 */}
-            {item.memberId == myId && (
+          <div className="detail-seller-actions">
+            {item.memberId == myId ? (
               <>
                 <button className="detail-text-btn" onClick={handleEdit}>수정</button>
                 <button className="detail-text-btn" onClick={handleDelete}>삭제</button>
               </>
+            ) : (
+              <button className="detail-chat-btn" onClick={handleChat}>채팅</button>
             )}
-
-            {/* 모든 사용자에게 채팅하기 표시 */}
-            <button className="detail-chat-btn" onClick={handleChat}>채팅</button>
           </div>
         </div>
 
         {/* 가격과 팀명 구분 */}
         <div className="detail-price-team">
           {/* 가격 */}
-          <p className="detail-price">{item.price?.toLocaleString()} 얌</p>
+          <p className="detail-price">{item.price?.toLocaleString()} 원</p>
 
           {/* 팀명 */}
           {item.team && (
