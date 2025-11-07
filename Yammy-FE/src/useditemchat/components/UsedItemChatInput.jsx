@@ -1,17 +1,16 @@
 import { useState, useRef } from 'react';
 import imageCompression from 'browser-image-compression';
 import { usedItemChatApi } from '../api/usedItemChatApi';
-import '../styles/ChatInput.css';
+import '../styles/UsedItemChatInput.css';
 
 /**
  * 중고거래 채팅 입력창
  * - 응원 채팅 스타일 적용
- * - [📷] [텍스트 입력] [✈️] 레이아웃
  */
 export default function UsedItemChatInput({ roomKey }) {
-  const [message, setMessage] = useState('');
-  const [sending, setSending] = useState(false);
-  const fileInputRef = useRef(null);
+  const [message, setMessage] = useState(''); // 입력 중인 메시지
+  const [sending, setSending] = useState(false); // 전송 중 여부
+  const fileInputRef = useRef(null); // 숨겨진 파일 입력 참조
 
   // 텍스트 메시지 전송
   const handleSendMessage = async () => {
@@ -22,7 +21,7 @@ export default function UsedItemChatInput({ roomKey }) {
       await usedItemChatApi.sendTextMessage(roomKey, message.trim());
       setMessage(''); // 입력창 초기화
     } catch (err) {
-      console.error('❌ 메시지 전송 실패:', err);
+      console.error('메시지 전송 실패:', err);
       alert('메시지 전송 실패: ' + (err.response?.data?.message || err.message));
     } finally {
       setSending(false);
@@ -58,7 +57,7 @@ export default function UsedItemChatInput({ roomKey }) {
 
   // 이미지 업로드
   const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]; // 선택한 파일
     if (!file || !roomKey || sending) return;
 
     if (!file.type.startsWith('image/')) {
@@ -68,26 +67,21 @@ export default function UsedItemChatInput({ roomKey }) {
 
     try {
       setSending(true);
+      const compressedFile = await compressImage(file); // 압축
 
-      // 이미지 압축
-      const compressedFile = await compressImage(file);
-
-      // 10MB 초과 시 차단
       if (compressedFile.size > 10 * 1024 * 1024) {
         alert('파일 크기는 10MB 이하만 가능합니다.');
         return;
       }
 
-      // 업로드
-      await usedItemChatApi.uploadImage(roomKey, compressedFile);
-      console.log('✅ 이미지 업로드 성공');
+      await usedItemChatApi.uploadImage(roomKey, compressedFile); // 업로드
+      console.log('이미지 업로드 성공');
 
-      // 파일 입력 초기화
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = ''; // 초기화
       }
     } catch (err) {
-      console.error('❌ 이미지 업로드 실패:', err);
+      console.error('이미지 업로드 실패:', err);
       alert('이미지 업로드 실패: ' + (err.response?.data?.message || err.message));
     } finally {
       setSending(false);
@@ -96,7 +90,7 @@ export default function UsedItemChatInput({ roomKey }) {
 
   // 이미지 선택
   const handleImageSelect = () => {
-    fileInputRef.current?.click();
+    fileInputRef.current?.click(); // 클릭 트리거
   };
 
   return (
@@ -111,7 +105,7 @@ export default function UsedItemChatInput({ roomKey }) {
           className="hidden"
         />
 
-        {/* 📷 이미지 버튼 */}
+        {/* 이미지 버튼 */}
         <button
           onClick={handleImageSelect}
           disabled={sending}
@@ -134,7 +128,7 @@ export default function UsedItemChatInput({ roomKey }) {
           className="useditem-chat-text-input"
         />
 
-        {/* ✈️ 전송 버튼 */}
+        {/* 전송 버튼 */}
         <button
           onClick={handleSendMessage}
           disabled={!message.trim() || sending}
