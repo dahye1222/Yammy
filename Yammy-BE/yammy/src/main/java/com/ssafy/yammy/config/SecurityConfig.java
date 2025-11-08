@@ -79,6 +79,9 @@ public class SecurityConfig {
                         // 중고거래 채팅
                         .requestMatchers("/api/useditem/chat/**").authenticated()
 
+                        // 중고거래 에스크로
+                        .requestMatchers("/api/escrow/**").authenticated()
+
                         // 사진 업로드
                         .requestMatchers("/api/photos/**").authenticated()
 
