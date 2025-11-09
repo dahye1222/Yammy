@@ -92,6 +92,9 @@ public class SecurityConfig {
                         // 경기 정보 조회
                         .requestMatchers(HttpMethod.GET, "/api/matches/**").permitAll()
 
+                        // 승부예측 조회
+                        .requestMatchers(HttpMethod.GET, "/api/predict/**").permitAll()
+
                         // 티켓
                         .requestMatchers("/api/tickets/**").authenticated()
 
