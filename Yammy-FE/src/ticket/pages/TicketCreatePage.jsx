@@ -172,8 +172,8 @@ const TicketCreatePage = () => {
             game: `${match.away} vs ${match.home}`,
             date: match.matchdate,
             location: normalizedPlace,
-            awayScore: match.awayScore || '',
-            homeScore: match.homeScore || '',
+            awayScore: match.awayScore !== null && match.awayScore !== undefined ? match.awayScore : '',
+            homeScore: match.homeScore !== null && match.homeScore !== undefined ? match.homeScore : '',
             type: '야구',
             myTeam: myTeam,
             result: result
