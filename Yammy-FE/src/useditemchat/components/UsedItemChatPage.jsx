@@ -3,8 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { usedItemChatApi } from '../api/usedItemChatApi';
 import { getUsedItemById } from '../../useditem/api/usedItemApi';
 import { useUsedItemChatMessages } from '../hooks/useUsedItemChatMessages';
+import { getMyPoint } from '../../payment/api/pointAPI';
+import { deposit } from '../api/escrowApi';
+import useAuthStore from '../../stores/authStore';
 import UsedItemMessageList from './UsedItemMessageList';
 import UsedItemChatInput from './UsedItemChatInput';
+import TransferModal from './TransferModal';
 import '../styles/UsedItemChatPage.css';
 
 /**
@@ -13,12 +17,15 @@ import '../styles/UsedItemChatPage.css';
 export default function UsedItemChatPage() {
   const { roomKey } = useParams(); // 채팅방 키
   const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user); // 현재 로그인한 사용자
 
   const [chatRoomInfo, setChatRoomInfo] = useState(null); // 채팅방 정보
   const [itemInfo, setItemInfo] = useState(null); // 물품 정보
   const [loading, setLoading] = useState(true); // 로딩 상태
   const [error, setError] = useState(null); // 에러 메시지
   const [selectedImage, setSelectedImage] = useState(null); // 클릭한 이미지 확대
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false); // 송금 모달
+  const [myBalance, setMyBalance] = useState(0); // 내 포인트 잔액
 
   // 실시간 메시지 구독
   const { messages, loading: loadingMessages, error: messageError } = useUsedItemChatMessages(roomKey);
@@ -41,6 +48,10 @@ export default function UsedItemChatPage() {
         console.log('Item info:', item);
         setItemInfo(item);
 
+        // 3. 내 포인트 잔액 조회
+        const pointData = await getMyPoint();
+        setMyBalance(pointData.balance);
+
         setLoading(false);
       } catch (err) {
         console.error('Error initializing chat:', err);
@@ -51,6 +62,49 @@ export default function UsedItemChatPage() {
 
     initChat();
   }, [roomKey]);
+
+  // 송금 모달 열기
+  const handleOpenTransferModal = () => {
+    setIsTransferModalOpen(true);
+  };
+
+  // 송금 모달 닫기
+  const handleCloseTransferModal = () => {
+    setIsTransferModalOpen(false);
+  };
+
+  // 송금 처리
+  const handleTransferSubmit = async (amount) => {
+    try {
+      if (!user || !user.memberId) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+
+      // 상대방 memberId 계산 (채팅방 참여자 중 나를 제외한 사람)
+      // localStorage에서 가져온 값은 string이므로 Number로 변환
+      const myMemberId = Number(user.memberId);
+      const otherMemberId = chatRoomInfo.buyerId === myMemberId
+        ? chatRoomInfo.sellerId
+        : chatRoomInfo.buyerId;
+
+      console.log('송금 정보:', { roomKey, amount, myMemberId, otherMemberId, usedItemId: chatRoomInfo.usedItemId });
+
+      await deposit(roomKey, amount, otherMemberId, chatRoomInfo.usedItemId);
+
+      alert('송금이 완료되었습니다.');
+
+      // 포인트 잔액 갱신
+      const updatedPoint = await getMyPoint();
+      setMyBalance(updatedPoint.balance);
+
+      // pointUpdated 이벤트 발생 (NavigationBarTop 업데이트용)
+      window.dispatchEvent(new Event('pointUpdated'));
+    } catch (error) {
+      console.error('송금 실패:', error);
+      alert(error.response?.data?.message || '송금에 실패했습니다.');
+    }
+  };
 
   // 에러 처리
   if (error || messageError) {
@@ -105,6 +159,13 @@ export default function UsedItemChatPage() {
                 </div>
               </div>
             )}
+
+            {/* 송금 버튼 */}
+            {chatRoomInfo && (
+              <button className="chat-transfer-btn" onClick={handleOpenTransferModal}>
+                송금
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -139,6 +200,14 @@ export default function UsedItemChatPage() {
           </div>
         </div>
       )}
+
+      {/* 송금 모달 */}
+      <TransferModal
+        isOpen={isTransferModalOpen}
+        onClose={handleCloseTransferModal}
+        onSubmit={handleTransferSubmit}
+        currentBalance={myBalance}
+      />
     </div>
   );
 }
