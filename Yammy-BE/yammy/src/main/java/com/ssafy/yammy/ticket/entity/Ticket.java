@@ -83,6 +83,9 @@ public class Ticket {
     @Column(name = "nft_minted_at")
     private LocalDateTime nftMintedAt;  // NFT 발급 시간
 
+    @Column(length = 50)
+    private String team;  // 응원 팀 (티켓 배경용)
+
     // 메타데이터
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -104,7 +107,7 @@ public class Ticket {
     // 수정 메서드
     public void update(String game, LocalDate date, String location, String seat,
                        String comment, String type, Integer awayScore, Integer homeScore,
-                       String review, String photoUrl, String matchcode) {
+                       String review, String photoUrl, String matchcode, String team) {
         this.game = game;
         this.date = date;
         this.location = location;
@@ -118,6 +121,7 @@ public class Ticket {
             this.photoUrl = photoUrl;
         }
         this.matchcode = matchcode;
+        this.team = team;
     }
 
     // NFT 발급 완료 메서드
