@@ -95,6 +95,7 @@ public class TicketService {
                 .homeScore(homeScore)
                 .review(request.getReview())
                 .photoUrl(photoUrl)
+                .team(request.getTeam())
                 .build();
 
         Ticket savedTicket = ticketRepository.save(ticket);
@@ -196,7 +197,8 @@ public class TicketService {
                 homeScore,
                 request.getReview(),
                 photoUrl,
-                request.getMatchcode()
+                request.getMatchcode(),
+                request.getTeam()
         );
 
         log.info("티켓 수정 완료 - ticketId: {}, memberId: {}", ticketId, memberId);

@@ -15,35 +15,24 @@ import lotteTicket from '../../assets/images/tickets/lotte.png';
 import ssgTicket from '../../assets/images/tickets/ssg.png';
 
 const TICKET_BACKGROUNDS = {
-    'LG': lgtwinsTicket,
-    '두산': doosanTicket,
-    '키움': kiwoomTicket,
-    '한화': hanwhaTicket,
-    'KT': ktwizTicket,
-    'NC': ncTicket,
-    'KIA': kiaTicket,
-    '삼성': samsungTicket,
-    '롯데': lotteTicket,
-    'SSG': ssgTicket
+    'LG 트윈스': lgtwinsTicket,
+    '두산 베어스': doosanTicket,
+    '키움 히어로즈': kiwoomTicket,
+    '한화 이글스': hanwhaTicket,
+    'KT 위즈': ktwizTicket,
+    'NC 다이노스': ncTicket,
+    'KIA 타이거즈': kiaTicket,
+    '삼성 라이온즈': samsungTicket,
+    '롯데 자이언츠': lotteTicket,
+    'SSG 랜더스': ssgTicket
 };
 
 const TicketCard = ({ ticket }) => {
     const [isFlipped, setIsFlipped] = useState(false);
     const teamColors = getTeamColors();
 
-    // 경기명에서 팀 추출 (예: "LG vs KT" -> "LG")
-    const getTeamFromGame = (game) => {
-        if (!game) return null;
-        const teams = ['LG', '두산', '키움', '한화', 'KT', 'NC', 'KIA', '삼성', '롯데', 'SSG'];
-        for (const team of teams) {
-            if (game.includes(team)) {
-                return team;
-            }
-        }
-        return null;
-    };
-
-    const team = getTeamFromGame(ticket.game);
+    // ticket.team이 있으면 사용, 없으면 localStorage의 team 사용
+    const team = ticket.team || localStorage.getItem('team');
     const ticketBackground = team ? TICKET_BACKGROUNDS[team] : null;
 
     const handleFlip = () => {
