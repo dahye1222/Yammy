@@ -177,15 +177,20 @@ const CommentPage = () => {
   };
 
   const handleDeleteComment = async () => {
+    const confirmed = window.confirm("이 댓글을 정말 삭제하시겠습니까?");
+    if (!confirmed) return;
+
     try {
-      await deleteCommentApi(selectedCommentId);
-      setComments(comments.filter(c => c.id !== selectedCommentId));
-      setShowCommentMenu(false);
-      loadPost();
+        await deleteCommentApi(selectedCommentId);
+        setComments(comments.filter(c => c.id !== selectedCommentId));
+        setShowCommentMenu(false);
+        loadPost();
     } catch (err) {
-      console.error("댓글 삭제 실패:", err);
+        console.error("댓글 삭제 실패:", err);
+        alert("댓글 삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
     }
-  };
+    };
+
 
   return (
     <div className="comment-page" style={{ '--team-color': teamColors.bgColor }}>
@@ -298,17 +303,17 @@ const CommentPage = () => {
 
       {showCommentMenu && (
         <div className="comment-menu-modal" onClick={() => setShowCommentMenu(false)}>
-          <div className="comment-menu-content" onClick={(e) => e.stopPropagation()}>
-            <h3>댓글 옵션</h3>
+            <div className="comment-menu-content" onClick={(e) => e.stopPropagation()}>
             <button className="menu-option delete" onClick={handleDeleteComment}>
-              삭제하기
+                삭제하기
             </button>
+            <div className="menu-divider"></div>
             <button className="cancel-btn" onClick={() => setShowCommentMenu(false)}>
-              취소
+                취소
             </button>
-          </div>
+            </div>
         </div>
-      )}
+        )}
     </div>
   );
 };
