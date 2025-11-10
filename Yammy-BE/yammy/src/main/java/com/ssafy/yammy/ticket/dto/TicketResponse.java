@@ -26,6 +26,7 @@ public class TicketResponse {
     private Integer homeScore;
     private String review;
     private String photoPreview;  // 프론트엔드와 필드명 통일
+    private String team;  // 응원 팀 (티켓 배경용)
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -55,7 +56,8 @@ public class TicketResponse {
                 .awayScore(ticket.getAwayScore())
                 .homeScore(ticket.getHomeScore())
                 .review(ticket.getReview())
-                .photoPreview(photoUrl)
+                .photoPreview(ticket.getPhotoUrl())
+                .team(ticket.getTeam())
                 .createdAt(ticket.getCreatedAt())
                 .updatedAt(ticket.getUpdatedAt())
                 .nftTokenId(ticket.getNftTokenId())

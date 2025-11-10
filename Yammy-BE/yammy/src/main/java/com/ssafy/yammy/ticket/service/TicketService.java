@@ -99,7 +99,8 @@ public class TicketService {
                 .awayScore(awayScore)
                 .homeScore(homeScore)
                 .review(request.getReview())
-                .photoUrl(photoUrl)  // S3 URL 저장
+                .photoUrl(photoUrl)
+                .team(request.getTeam())
                 .build();
 
         Ticket savedTicket = ticketRepository.save(ticket);
@@ -214,7 +215,8 @@ public class TicketService {
                 homeScore,
                 request.getReview(),
                 photoUrl,
-                request.getMatchcode()
+                request.getMatchcode(),
+                request.getTeam()
         );
 
         log.info("티켓 수정 완료 - ticketId: {}, memberId: {}", ticketId, memberId);
