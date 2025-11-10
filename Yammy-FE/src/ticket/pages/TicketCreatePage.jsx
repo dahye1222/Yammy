@@ -200,7 +200,12 @@ const TicketCreatePage = () => {
             return;
         }
         try {
-            await createTicket(formData);
+            // team 필드 추가
+            const ticketDataWithTeam = {
+                ...formData,
+                team: selectedTeam
+            };
+            await createTicket(ticketDataWithTeam);
             alert('티켓이 발급되었습니다!');
             navigate('/ticket/list');
         } catch (error) {
