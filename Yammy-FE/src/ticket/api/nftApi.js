@@ -59,8 +59,8 @@ export const canMintNFT = (ticket) => {
   // 이미 NFT가 발급되었으면 false
   if (ticket.nftMinted === true) return false;
 
-  // ticketId가 있어야 함
-  if (!ticket.ticketId) return false;
+  // id가 있어야 함 (백엔드에서 id로 전달)
+  if (!ticket.id && !ticket.ticketId) return false;
 
   return true;
 };

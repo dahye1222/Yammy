@@ -53,8 +53,14 @@ public class TicketController {
         Long memberId = userDetails.getMemberId();
         log.info("티켓 발급 요청 - memberId: {}, game: {}, mintNft: {}", memberId, request.getGame(), mintNft);
 
-        // 모든 사진은 Pinata IPFS에 저장됨 (S3 사용 안 함)
-        TicketResponse response = ticketService.createTicketWithPhoto(memberId, request, photo, mintNft);
+        // 직관 사진을 S3에 업로드
+        String photoUrl = null;
+        if (photo != null && !photo.isEmpty()) {
+            photoUrl = photoService.uploadPhoto(photo, "ticket");
+            log.info("티켓 사진 S3 업로드 완료 - memberId: {}, photoUrl: {}", memberId, photoUrl);
+        }
+
+        TicketResponse response = ticketService.createTicket(memberId, request, photoUrl, mintNft);
         return ResponseEntity.ok(response);
     }
 
