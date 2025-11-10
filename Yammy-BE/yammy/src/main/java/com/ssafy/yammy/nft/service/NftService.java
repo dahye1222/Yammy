@@ -83,41 +83,34 @@ public class NftService {
             }
 
             // 1. 이미지 IPFS 업로드 (멱등성 보장)
-            if (ticket.getIpfsImageHash() != null) {
-                // 이미 업로드된 이미지 재사용
-                imageHash = ticket.getIpfsImageHash();
-                log.info("기존 IPFS 이미지 재사용 - ticketId: {}, hash: {}", ticket.getTicketId(), imageHash);
-            } else if (photo != null && !photo.isEmpty()) {
-                // 새로 업로드
+            if (photo != null && !photo.isEmpty()) {
+                // 새로 전송된 photo가 있으면 우선 사용 (전체 티켓 이미지)
                 imageHash = uploadImageToPinata(photo, "yammy-ticket-" + ticket.getTicketId());
-                log.info("이미지 IPFS 업로드 완료 - ticketId: {}, hash: {}", ticket.getTicketId(), imageHash);
+                log.info("새 이미지 IPFS 업로드 완료 - ticketId: {}, hash: {}", ticket.getTicketId(), imageHash);
 
                 // 즉시 DB 저장 (실패해도 재사용 가능)
                 ticket.setIpfsImageHash(imageHash);
                 ticketRepository.save(ticket);
                 log.info("이미지 해시 DB 저장 완료");
+            } else if (ticket.getIpfsImageHash() != null) {
+                // photo가 없으면 기존 이미지 재사용
+                imageHash = ticket.getIpfsImageHash();
+                log.info("기존 IPFS 이미지 재사용 - ticketId: {}, hash: {}", ticket.getTicketId(), imageHash);
             }
 
             String imageIpfsUri = imageHash != null ? pinataGateway + imageHash : null;
 
-            // 2. 메타데이터 IPFS 업로드 (멱등성 보장)
-            if (ticket.getIpfsMetadataHash() != null) {
-                // 이미 업로드된 메타데이터 재사용
-                metadataHash = ticket.getIpfsMetadataHash();
-                metadataUri = "ipfs://" + metadataHash;
-                log.info("기존 IPFS 메타데이터 재사용 - ticketId: {}, hash: {}", ticket.getTicketId(), metadataHash);
-            } else {
-                // 새로 업로드
-                String metadata = createMetadata(ticket, imageIpfsUri);
-                metadataHash = uploadJsonToPinata(metadata, "yammy-ticket-" + ticket.getTicketId() + ".json");
-                metadataUri = "ipfs://" + metadataHash;
-                log.info("메타데이터 IPFS 업로드 완료 - ticketId: {}, hash: {}", ticket.getTicketId(), metadataHash);
+            // 2. 메타데이터 IPFS 업로드 (항상 새로 생성)
+            // 이미지가 새로 업로드되었거나 기존 이미지를 사용하든, 메타데이터는 항상 최신 정보로 생성
+            String metadata = createMetadata(ticket, imageIpfsUri);
+            metadataHash = uploadJsonToPinata(metadata, "yammy-ticket-nft-" + ticket.getTicketId() + ".json");
+            metadataUri = "ipfs://" + metadataHash;
+            log.info("메타데이터 IPFS 업로드 완료 - ticketId: {}, hash: {}", ticket.getTicketId(), metadataHash);
 
-                // 즉시 DB 저장 (실패해도 재사용 가능)
-                ticket.setIpfsMetadataHash(metadataHash);
-                ticketRepository.save(ticket);
-                log.info("메타데이터 해시 DB 저장 완료");
-            }
+            // DB에 메타데이터 해시 저장
+            ticket.setIpfsMetadataHash(metadataHash);
+            ticketRepository.save(ticket);
+            log.info("메타데이터 해시 DB 저장 완료");
 
             // 3. 스마트 컨트랙트 호출 (mintTicket)
             log.info("블록체인 트랜잭션 시작 - ticketId: {}", ticket.getTicketId());
@@ -382,21 +375,29 @@ public class NftService {
 
         String transactionHash = ethSendTransaction.getTransactionHash();
 
-        // 트랜잭션 영수증 대기
-        Optional<TransactionReceipt> receiptOptional = web3j.ethGetTransactionReceipt(transactionHash)
-                .send()
-                .getTransactionReceipt();
+        // 트랜잭션 영수증 대기 (최대 30초, 5초 간격으로 6번 시도)
+        Optional<TransactionReceipt> receiptOptional = Optional.empty();
+        int maxRetries = 6;
+        int retryDelay = 5000; // 5초
 
-        if (receiptOptional.isEmpty()) {
-            // 영수증이 아직 없으면 잠시 대기 후 재시도
-            Thread.sleep(5000);
+        for (int i = 0; i < maxRetries; i++) {
             receiptOptional = web3j.ethGetTransactionReceipt(transactionHash)
                     .send()
                     .getTransactionReceipt();
+
+            if (receiptOptional.isPresent()) {
+                log.info("트랜잭션 영수증 수신 성공 - 시도 횟수: {}", i + 1);
+                break;
+            }
+
+            if (i < maxRetries - 1) {
+                log.info("트랜잭션 영수증 대기 중... ({}초 후 재시도)", retryDelay / 1000);
+                Thread.sleep(retryDelay);
+            }
         }
 
         return receiptOptional.orElseThrow(() ->
-            new RuntimeException("트랜잭션 영수증을 받을 수 없습니다: " + transactionHash));
+            new RuntimeException("트랜잭션 영수증을 받을 수 없습니다 (30초 타임아웃): " + transactionHash));
     }
 
     /**

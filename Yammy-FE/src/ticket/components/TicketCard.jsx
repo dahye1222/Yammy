@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { getTeamColors } from '../../sns/utils/teamColors';
 import { mintNFT, canMintNFT, getNFTStatusMessage, getEtherscanNFTUrl, getOpenSeaNFTUrl } from '../api/nftApi';
+import html2canvas from 'html2canvas';
 import '../styles/TicketCard.css';
 
 // 팀별 티켓 배경 이미지 매핑
@@ -33,6 +34,7 @@ const TicketCard = ({ ticket, onNftMinted }) => {
     const [isMinting, setIsMinting] = useState(false);
     const [mintStatus, setMintStatus] = useState('');
     const teamColors = getTeamColors();
+    const ticketCardRef = useRef(null);
 
     // 경기명에서 팀 추출 (예: "LG vs KT" -> "LG")
     const getTeamFromGame = (game) => {
@@ -54,7 +56,7 @@ const TicketCard = ({ ticket, onNftMinted }) => {
     };
 
     const handleMintNFT = async (e) => {
-        e.stopPropagation(); // 카드 플립 방지
+        e.stopPropagation();
 
         if (!canMintNFT(ticket)) {
             alert('NFT 발급이 불가능합니다.');
@@ -66,20 +68,63 @@ const TicketCard = ({ ticket, onNftMinted }) => {
         }
 
         setIsMinting(true);
-        setMintStatus('NFT 발급 중...');
+        setMintStatus('티켓 이미지 생성 중...');
 
         try {
-            // photo는 ticket.photoPreview가 있으면 fetch로 가져와야 하지만
-            // 간단하게 하기 위해 일단 null로 처리 (이미 티켓에 사진이 저장되어 있음)
-            const response = await mintNFT(ticket.ticketId, null, null);
+            if (!ticketCardRef.current) {
+                throw new Error('티켓 요소를 찾을 수 없습니다.');
+            }
+
+            // 뒷면으로 플립
+            const wasFlipped = isFlipped;
+            if (!wasFlipped) {
+                setIsFlipped(true);
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+
+            setMintStatus('티켓 캡처 중...');
+
+            // 티켓 카드 캡처
+            const canvas = await html2canvas(ticketCardRef.current, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                logging: false
+            });
+
+            // Blob 변환
+            const blob = await new Promise((resolve) => {
+                canvas.toBlob(resolve, 'image/png');
+            });
+
+            // File 객체로 변환
+            const ticketId = ticket.id || ticket.ticketId;
+            const ticketImageFile = new File([blob], `ticket-${ticketId}.png`, {
+                type: 'image/png'
+            });
+
+            console.log('캡처된 티켓 이미지:', {
+                fileName: ticketImageFile.name,
+                fileSize: ticketImageFile.size,
+                fileType: ticketImageFile.type
+            });
+
+            setMintStatus('NFT 발급 중...');
+
+            // NFT 발급
+            const response = await mintNFT(ticketId, ticketImageFile, null);
+
+            // 원래 상태로 복원
+            if (!wasFlipped) {
+                setIsFlipped(false);
+            }
 
             if (response.success) {
                 setMintStatus('NFT 발급 완료!');
                 alert(`NFT 발급이 완료되었습니다!\n\nToken ID: ${response.tokenId}\nTransaction: ${response.transactionHash}`);
 
-                // 부모 컴포넌트에 알림 (티켓 목록 새로고침용)
                 if (onNftMinted) {
-                    onNftMinted(ticket.ticketId, response);
+                    onNftMinted(ticketId, response);
                 }
             } else {
                 setMintStatus('NFT 발급 실패');
@@ -97,7 +142,7 @@ const TicketCard = ({ ticket, onNftMinted }) => {
 
     return (
         <div className="ticket-card-container" onClick={handleFlip}>
-            <div className={`ticket-card ${isFlipped ? 'flipped' : ''}`}>
+            <div className={`ticket-card ${isFlipped ? 'flipped' : ''}`} ref={ticketCardRef}>
                 {/* 앞면 */}
                 {ticketBackground ? (
                     <div

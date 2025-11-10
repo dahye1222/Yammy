@@ -36,8 +36,9 @@ public class NftController {
             @RequestPart(value = "photo", required = false) org.springframework.web.multipart.MultipartFile photo) {
 
         Long memberId = userDetails.getMemberId();
-        log.info("NFT 발급 요청 - memberId: {}, ticketId: {}, walletAddress: {}",
-                memberId, request.getTicketId(), request.getWalletAddress());
+        log.info("NFT 발급 요청 - memberId: {}, ticketId: {}, walletAddress: {}, photo: {}",
+                memberId, request.getTicketId(), request.getWalletAddress(),
+                photo != null ? photo.getSize() + " bytes" : "없음");
 
         // 티켓 조회 및 권한 확인
         Ticket ticket = ticketRepository.findById(request.getTicketId())
