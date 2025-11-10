@@ -202,14 +202,13 @@
   font-size: 18px;
   color: #9ca3af;
   cursor: pointer;
-  padding: 4px;
 }
 
 /* 댓글 텍스트 & 좋아요 */
 .comment-text {
   font-size: 14px;
   color: #333;
-  margin: 6px 0 4px 42px;  /* 아바타 라인 맞춰 들여쓰기 */
+  margin: 1px 0 4px 42px;  
   line-height: 1.45;
 }
 
@@ -217,7 +216,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-left: 42px;
+  margin-left: 38px;
   font-size: 13px;
   border: none;
   background: none;
