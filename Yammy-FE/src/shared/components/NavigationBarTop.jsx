@@ -11,7 +11,7 @@ const NavigationBarTop = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const token = localStorage.getItem("accessToken");
-  const { isLoggedIn, user, logOut, initialize } = useAuthStore();
+  const { isLoggedIn, user, logOut, initialize, syncFromLocalStorage } = useAuthStore(); // ✅ syncFromLocalStorage 추가
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [teamColors, setTeamColors] = useState(getTeamColors());
   const [balance, setBalance] = useState(null);
@@ -23,6 +23,17 @@ const NavigationBarTop = () => {
     initialize();
   }, [initialize]);
 
+  // 프로필 이미지, 닉네임, 팀이 localStorage에서 바뀔 때마다 자동 반영
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (["profileImage", "nickname", "team"].includes(e.key)) {
+        syncFromLocalStorage();
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [syncFromLocalStorage]);
+
   // 팀 컬러 업데이트
   useEffect(() => {
     setTeamColors(getTeamColors());
@@ -33,8 +44,8 @@ const NavigationBarTop = () => {
     const handleTeamChange = () => {
       setTeamColors(getTeamColors());
     };
-    window.addEventListener('teamChanged', handleTeamChange);
-    return () => window.removeEventListener('teamChanged', handleTeamChange);
+    window.addEventListener("teamChanged", handleTeamChange);
+    return () => window.removeEventListener("teamChanged", handleTeamChange);
   }, []);
 
   // cheerup 하위경로 또는 useditem/chat 하위경로일 때만 네브바 숨김
@@ -77,7 +88,6 @@ const NavigationBarTop = () => {
     return () => window.removeEventListener("pointUpdated", handlePointUpdate);
   }, [token, isLoggedIn]);
 
-  // 렌더 직전에 네비게이션 숨김 조건 처리 (훅 호출 순서가 항상 동일하도록)
   if (shouldHideNav) return null;
 
   const handleLogout = () => {
@@ -100,15 +110,7 @@ const NavigationBarTop = () => {
       location.pathname.startsWith("/success") ||
       location.pathname.startsWith("/fail"));
 
-  const currentLogo =
-    location.pathname.startsWith("/useditem") ||
-    location.pathname === "/mypoint" ||
-    location.pathname === "/chatlist" ||
-    location.pathname === "/checkout" ||
-    location.pathname.startsWith("/success") ||
-    location.pathname.startsWith("/fail")
-      ? gugong
-      : logo;
+  const currentLogo = shouldShowBalanceButton ? gugong : logo;
 
   return (
     <nav className="nav-bar-top" style={{ backgroundColor: teamColors.bgColor }}>
@@ -125,9 +127,7 @@ const NavigationBarTop = () => {
                 {balance !== null
                   ? (() => {
                       const str = format(balance);
-                      return str.length > 5
-                        ? `${str.slice(0, 3)}...`
-                        : `${str}얌`;
+                      return str.length > 5 ? `${str.slice(0, 3)}...` : `${str}얌`;
                     })()
                   : error
                   ? "오류"
@@ -149,10 +149,11 @@ const NavigationBarTop = () => {
                   className="user-button"
                   onClick={() => setShowUserMenu(!showUserMenu)}
                 >
-                  <i className="fas fa-user-circle"></i>
-                  <span className="user-nickname">
-                    {user?.nickname || "사용자"}
-                  </span>
+                  <img
+                    src={user?.profileImage}
+                    alt="프로필"
+                    className="user-profile-img"
+                  />
                   <i
                     className={`fas fa-chevron-down ${
                       showUserMenu ? "rotate" : ""
@@ -163,21 +164,16 @@ const NavigationBarTop = () => {
                 {showUserMenu && (
                   <div className="user-dropdown">
                     <button onClick={() => navigate("/mypage")}>
-                      <i className="fas fa-user"></i>
-                      내 프로필
+                      <i className="fas fa-user"></i> 내 프로필
                     </button>
                     <button onClick={handleLogout}>
-                      <i className="fas fa-sign-out-alt"></i>
-                      로그아웃
+                      <i className="fas fa-sign-out-alt"></i> 로그아웃
                     </button>
                   </div>
                 )}
               </div>
             ) : (
-              <button
-                className="login-button"
-                onClick={() => navigate("/login")}
-              >
+              <button className="login-button" onClick={() => navigate("/login")}>
                 로그인
               </button>
             )}
