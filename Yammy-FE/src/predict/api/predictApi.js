@@ -15,12 +15,11 @@ const publicApi = axios.create({
 export const getMatchesByDate = async (date) => {
   try {
     console.log(`🎯 승부예측 경기 조회 요청: ${date}`);
-    
     // ✅ 경기 조회는 인증 불필요 (permitAll) - publicApi 사용
     const response = await publicApi.get(`/predict/matches`, {
       params: { date }
     });
-    
+
     console.log(`✅ 승부예측 경기 조회 성공:`, response.data);
     return response.data;
   } catch (error) {
@@ -37,12 +36,12 @@ export const getTodayMatches = async () => {
   try {
     // 오늘 날짜를 YYYYMMDD 형식으로 변환
     const today = new Date();
-    const formattedDate = today.getFullYear() + 
-                         String(today.getMonth() + 1).padStart(2, '0') + 
+    const formattedDate = today.getFullYear() +
+                         String(today.getMonth() + 1).padStart(2, '0') +
                          String(today.getDate()).padStart(2, '0');
-    
+
     console.log(`📅 오늘 날짜: ${formattedDate}`);
-    
+
     return await getMatchesByDate(formattedDate);
   } catch (error) {
     console.error(`❌ 오늘 경기 조회 실패:`, error);
@@ -75,7 +74,7 @@ export const formatDateForAPI = (dateString) => {
 export const createBetting = async (bettingData) => {
   try {
     console.log(`🎯 배팅 생성 요청:`, bettingData);
-    
+
     // 🔥 배팅 생성은 인증 필요 - apiClient 사용
     const response = await apiClient.post('/predict/betting', {
       predictedMatchId: bettingData.matchId,    // 백엔드 DTO에 맞게 수정
@@ -83,12 +82,12 @@ export const createBetting = async (bettingData) => {
       batAmount: bettingData.betAmount         // 백엔드 DTO에 맞게 수정
       // expectedReturn 제거 (백엔드에서 계산)
     });
-    
+
     console.log(`✅ 배팅 생성 성공:`, response.data);
     return response.data;
   } catch (error) {
     console.error(`❌ 배팅 생성 실패:`, error);
-    
+
     // 에러 메시지 정제
     if (error.response?.data?.message) {
       throw new Error(error.response.data.message);
@@ -116,15 +115,19 @@ export const getUserBettings = async (params = {}) => {
   try {
     const { page = 0, size = 10, status } = params;
     console.log(`📊 배팅 내역 조회 요청:`, params);
-    
+
     const queryParams = { page, size };
     if (status) queryParams.status = status;
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 2a4cb5b5c57ccb0577962266dea9902b6e2009b0
     // 🔥 배팅 내역은 인증 필요 - apiClient 사용
     const response = await apiClient.get('/predict/betting/my', {
       params: queryParams
     });
-    
+
     console.log(`✅ 배팅 내역 조회 성공:`, response.data);
     return response.data;
   } catch (error) {
@@ -140,10 +143,14 @@ export const getUserBettings = async (params = {}) => {
 export const getMemberInfo = async () => {
   try {
     console.log(`📝 회원정보 조회 요청`);
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 2a4cb5b5c57ccb0577962266dea9902b6e2009b0
     // 🔥 회원정보는 인증 필요 - apiClient 사용
     const response = await apiClient.get('/auth/myinfo');
-    
+
     console.log(`✅ 회원정보 조회 성공:`, response.data);
     return response.data;
   } catch (error) {
@@ -160,15 +167,19 @@ export const getMemberInfo = async () => {
 export const cancelBetting = async (bettingId) => {
   try {
     console.log(`🚫 배팅 취소 요청: ${bettingId}`);
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 2a4cb5b5c57ccb0577962266dea9902b6e2009b0
     // 🔥 배팅 취소는 인증 필요 - apiClient 사용
     const response = await apiClient.delete(`/predict/betting/${bettingId}`);
-    
+
     console.log(`✅ 배팅 취소 성공:`, response.data);
     return response.data;
   } catch (error) {
     console.error(`❌ 배팅 취소 실패:`, error);
-    
+
     if (error.response?.data?.message) {
       throw new Error(error.response.data.message);
     } else if (error.response?.status === 400) {
