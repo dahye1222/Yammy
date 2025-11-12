@@ -50,7 +50,7 @@ function UsedItemChatList() {
     <div className="chat-list-container">
       {/* === 헤더 === */}
       <div className="chat-list-header">
-        <button onClick={() => navigate(-1)} className="chat-list-back-btn">
+        <button onClick={() => navigate("/useditem")} className="chat-list-back-btn">
           ←
         </button>
         <h1 className="chat-list-title">채팅방 목록</h1>
