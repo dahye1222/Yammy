@@ -11,6 +11,8 @@ function UsedItemChatList() {
 
   useEffect(() => {
     loadChatRooms();
+    // 채팅방 목록 진입 시 상단 네비의 벨 아이콘 갱신 트리거
+    window.dispatchEvent(new Event('chatListViewed'));
   }, []);
 
   const loadChatRooms = async () => {

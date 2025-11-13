@@ -99,7 +99,7 @@ const NavigationBarTop = () => {
   useEffect(() => {
     const fetchUnreadCount = async () => {
       if (!token || !isLoggedIn) return;
-      
+
       try {
         const count = await usedItemChatApi.getTotalUnreadCount();
         setTotalUnreadCount(count);
@@ -107,12 +107,23 @@ const NavigationBarTop = () => {
         console.error('Failed to fetch unread count:', error);
       }
     };
-    
+
     fetchUnreadCount();
-    
+
     // 30초마다 갱신
     const interval = setInterval(fetchUnreadCount, 30000);
-    return () => clearInterval(interval);
+
+    // 채팅방 목록 진입 시 즉시 갱신
+    const handleChatListViewed = () => {
+      fetchUnreadCount();
+    };
+
+    window.addEventListener('chatListViewed', handleChatListViewed);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('chatListViewed', handleChatListViewed);
+    };
   }, [token, isLoggedIn]);
   if (shouldHideNav) return null;
 
