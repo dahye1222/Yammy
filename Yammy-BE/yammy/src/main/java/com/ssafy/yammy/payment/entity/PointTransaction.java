@@ -36,10 +36,16 @@ public class PointTransaction {
     private TransactionType type;
 
     @Column(name = "amount")
-    private Long amount;
+    private Long amount; // 충전이나 환전
 
-    @Column(name = "reference_id")
-    private Integer referenceId;
+    @Column(name = "balance_after")
+    private Long balanceAfter;
+
+    @Column(name = "bank_name")
+    private String bankName;
+
+    @Column(name = "account_number")
+    private String accountNumber;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
