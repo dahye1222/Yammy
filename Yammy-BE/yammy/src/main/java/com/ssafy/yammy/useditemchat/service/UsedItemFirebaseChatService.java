@@ -39,7 +39,6 @@ public class UsedItemFirebaseChatService {
         // 7일 만료 Signed URL 생성
         String imageUrl = blob.signUrl(7, TimeUnit.DAYS).toString();
 
-        log.info("✅ Used item chat image uploaded: {} (size: {} bytes)", path, file.getSize());
         return imageUrl;
     }
 
@@ -62,7 +61,6 @@ public class UsedItemFirebaseChatService {
                 ))
                 .get();
 
-        log.info("✅ Used item chat message saved: {} in room: {}", docRef.getId(), roomKey);
         return docRef.getId();
     }
 
@@ -85,7 +83,6 @@ public class UsedItemFirebaseChatService {
                 ))
                 .get();
 
-        log.info("✅ Used item chat text message saved: {} in room: {}", docRef.getId(), roomKey);
         return docRef.getId();
     }
 
@@ -110,8 +107,6 @@ public class UsedItemFirebaseChatService {
                 ))
                 .get();
 
-        log.info("✅ Escrow message saved: {} in room: {} (escrowId: {}, amount: {})",
-                docRef.getId(), roomKey, escrowId, amount);
         return docRef.getId();
     }
 
@@ -136,10 +131,8 @@ public class UsedItemFirebaseChatService {
                     "status", status,
                     "completedAt", Timestamp.now()
             )).get();
-
-            log.info("✅ Escrow message status updated: escrowId={}, status={}", escrowId, status);
         } else {
-            log.warn("⚠️ Escrow message not found: escrowId={}", escrowId);
+            log.warn("Escrow message not found: escrowId={}", escrowId);
         }
     }
 }
