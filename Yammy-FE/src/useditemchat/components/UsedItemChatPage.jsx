@@ -261,7 +261,12 @@ export default function UsedItemChatPage() {
       </div>
 
       {/* === 입력창 === */}
-      {roomKey && <UsedItemChatInput roomKey={roomKey} />}
+      {roomKey && (
+        <UsedItemChatInput
+          roomKey={roomKey}
+          disabled={chatRoomInfo?.sellerDeleted || chatRoomInfo?.buyerDeleted}
+        />
+      )}
 
       {/* === 이미지 확대 === */}
       {selectedImage && (
