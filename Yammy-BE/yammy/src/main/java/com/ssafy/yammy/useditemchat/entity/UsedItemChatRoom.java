@@ -70,6 +70,18 @@ public class UsedItemChatRoom {
     @Column(name = "buyer_deleted", nullable = false)
     private Boolean buyerDeleted = false;
 
+    // 판매자가 읽지 않은 메시지 수
+    @Column(name = "seller_unread_count", nullable = false)
+    private Integer sellerUnreadCount = 0;
+
+    // 구매자가 읽지 않은 메시지 수
+    @Column(name = "buyer_unread_count", nullable = false)
+    private Integer buyerUnreadCount = 0;
+
+    // 마지막 메시지 시간
+    @Column(name = "last_message_at")
+    private LocalDateTime lastMessageAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "useditem_id")
     private UsedItem usedItem;
@@ -96,4 +108,31 @@ public class UsedItemChatRoom {
     public void setBuyerDeleted(Boolean buyerDeleted) {
         this.buyerDeleted = buyerDeleted;
     }
+
+    public Integer getSellerUnreadCount() {
+        return sellerUnreadCount != null ? sellerUnreadCount : 0;
+    }
+
+    public void setSellerUnreadCount(Integer sellerUnreadCount) {
+        this.sellerUnreadCount = sellerUnreadCount;
+    }
+
+    public Integer getBuyerUnreadCount() {
+        return buyerUnreadCount != null ? buyerUnreadCount : 0;
+    }
+
+    public void setBuyerUnreadCount(Integer buyerUnreadCount) {
+        this.buyerUnreadCount = buyerUnreadCount;
+    }
+
+    public LocalDateTime getLastMessageAt() {
+        return lastMessageAt;
+    }
+
+    public void setLastMessageAt(LocalDateTime lastMessageAt) {
+        this.lastMessageAt = lastMessageAt;
+    }
+
 }
+
+

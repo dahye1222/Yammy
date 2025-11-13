@@ -45,4 +45,14 @@ public interface UsedItemChatRoomRepository extends JpaRepository<UsedItemChatRo
      * 특정 물품의 모든 채팅방 개수
      */
     long countByUsedItemId(Long usedItemId);
+
+    /**
+     * 내가 참여한 채팅방의 전체 읽지 않은 메시지 수
+     */
+    @Query("SELECT COALESCE(SUM(CASE WHEN c.sellerId = :memberId THEN c.sellerUnreadCount " +
+            "WHEN c.buyerId = :memberId THEN c.buyerUnreadCount ELSE 0 END), 0) " +
+            "FROM UsedItemChatRoom c WHERE " +
+            "(c.sellerId = :memberId AND c.sellerDeleted = false) OR " +
+            "(c.buyerId = :memberId AND c.buyerDeleted = false)")
+    Integer getTotalUnreadCount(@Param("memberId") Long memberId);
 }

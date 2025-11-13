@@ -355,3 +355,36 @@
   font-size: 11px;
   user-select: none;
 }
+
+/* 읽지 않은 메시지 알림 */
+.header-notification {
+  position: relative;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bell-icon {
+  font-size: 1.5rem;
+  transition: transform 0.2s;
+}
+
+.header-notification:hover .bell-icon {
+  transform: scale(1.1);
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #ff4444;
+  color: white;
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  min-width: 18px;
+  text-align: center;
+}
