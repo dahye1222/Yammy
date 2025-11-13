@@ -68,6 +68,9 @@ export default function UsedItemChatPage() {
         const item = await getUsedItemById(chatRoom.usedItemId);
         setItemInfo(item);
 
+        // 읽음 처리
+        await usedItemChatApi.markAsRead(roomKey);
+
         const pointData = await getMyPoint();
         setMyBalance(pointData.balance);
       } catch (err) {

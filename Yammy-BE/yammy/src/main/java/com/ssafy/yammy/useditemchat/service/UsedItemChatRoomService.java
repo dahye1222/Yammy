@@ -100,8 +100,10 @@ public class UsedItemChatRoomService {
                 .sellerId(sellerId)
                 .buyerId(buyerId)
                 .status(UsedChatRoomStatus.ACTIVE)
-                .sellerDeleted(false)  // 추가
-                .buyerDeleted(false)   // 추가
+                .sellerDeleted(false)
+                .buyerDeleted(false)
+                .sellerUnreadCount(0)
+                .buyerUnreadCount(0)
                 .build();
 
         UsedItemChatRoom saved = usedItemChatRoomRepository.save(chatRoom);
@@ -115,6 +117,8 @@ public class UsedItemChatRoomService {
         firestoreData.put("status", saved.getStatus().name());
         firestoreData.put("sellerDeleted", false);
         firestoreData.put("buyerDeleted", false);
+        firestoreData.put("sellerUnreadCount", 0);
+        firestoreData.put("buyerUnreadCount", 0);
         firestoreData.put("createdAt", Timestamp.now());
 
         firestore.collection("useditem-chats")
@@ -222,4 +226,35 @@ public class UsedItemChatRoomService {
 
 
     }
+
+    /**
+     * 채팅방 입장 시 읽지 않은 메시지 초기화
+     */
+    @Transactional
+    public void markAsRead(String roomKey, Long memberId) throws Exception {
+        Firestore firestore = FirestoreClient.getFirestore();
+
+        UsedItemChatRoom room = getUsedItemChatRoom(roomKey);
+
+        // 본인의 unread count 초기화
+        if (room.getSellerId().equals(memberId)) {
+            room.setSellerUnreadCount(0);
+        } else if (room.getBuyerId().equals(memberId)) {
+            room.setBuyerUnreadCount(0);
+        }
+
+        usedItemChatRoomRepository.save(room);
+
+        // Firestore 동기화
+        String fieldName = room.getSellerId().equals(memberId) ? "sellerUnreadCount" : "buyerUnreadCount";
+        firestore.collection("useditem-chats")
+                .document(roomKey)
+                .update(fieldName, 0)
+                .get();
+
+        log.info("Marked as read: {} by user {}", roomKey, memberId);
+    }
+
+
+
 }
