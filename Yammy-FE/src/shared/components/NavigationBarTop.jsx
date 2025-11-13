@@ -82,10 +82,12 @@ const NavigationBarTop = () => {
         location.pathname === "/mypoint" ||
         location.pathname === "/chatlist" ||
         location.pathname === "/checkout" ||
+        location.pathname === "/bankstatement" ||
+        location.pathname.startsWith("/withdraw") ||
         location.pathname.startsWith("/success") ||
-        location.pathname.startsWith("/fail"));
-    if (shouldFetch) fetchData();
-  }, [token, isLoggedIn, location.pathname]);
+        location.pathname.startsWith("/fail"))
+    if (shouldFetch) fetchData()
+  }, [token, isLoggedIn, location.pathname])
 
   useEffect(() => {
     const handlePointUpdate = () => {
@@ -113,6 +115,8 @@ const NavigationBarTop = () => {
     (location.pathname.startsWith("/useditem") ||
       location.pathname === "/mypoint" ||
       location.pathname === "/chatlist" ||
+      location.pathname === "/bankstatement" ||
+      location.pathname.startsWith("/withdraw") ||
       location.pathname === "/checkout" ||
       location.pathname.startsWith("/success") ||
       location.pathname.startsWith("/fail"));
@@ -128,7 +132,7 @@ const NavigationBarTop = () => {
       <div className="header-right">
         {shouldShowBalanceButton ? (
           <div className="ypay-baseball-wrapper">
-            <div className="ypay-info" onClick={goMyPoint}>
+            <div className="ypay-info" onClick={() => navigate("/bankstatement")}>
               <div className="ypay-logo-circle">⚾</div>
               <span className="ypay-balance">
                 {balance !== null
