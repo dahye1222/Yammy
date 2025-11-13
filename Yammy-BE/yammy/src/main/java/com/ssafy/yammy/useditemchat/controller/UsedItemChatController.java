@@ -90,6 +90,20 @@ public class UsedItemChatController {
     }
 
     /**
+     * 채팅방 나가기
+     */
+    @Operation(summary = "채팅방 나가기", description = "중고거래 채팅방 나가기 (양쪽 모두 나가면 완전 삭제)")
+    @DeleteMapping("/room/{roomKey}")
+    public ResponseEntity<Void> leaveChatRoom(
+            @PathVariable String roomKey,
+            @AuthenticationPrincipal CustomUserDetails user) throws Exception {
+
+        usedItemChatRoomService.deleteUsedItemChatRoom(roomKey, user.getMemberId());
+        return ResponseEntity.noContent().build();
+    }
+
+
+    /**
      * 채팅방에 이미지 업로드
      */
     @Operation(summary = "이미지 업로드", description = "중고거래 채팅방에 이미지 전송")

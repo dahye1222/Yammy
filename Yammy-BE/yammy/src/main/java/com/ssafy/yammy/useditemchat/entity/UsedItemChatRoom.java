@@ -64,7 +64,11 @@ public class UsedItemChatRoom {
             this.status = UsedChatRoomStatus.ACTIVE;
         }
     }
+    @Column(name = "seller_deleted", nullable = false)
+    private Boolean sellerDeleted = false;
 
+    @Column(name = "buyer_deleted", nullable = false)
+    private Boolean buyerDeleted = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "useditem_id")
@@ -75,5 +79,21 @@ public class UsedItemChatRoom {
      */
     public static String generateRoomKey(Long usedItemId, Long buyerId) {
         return "useditem_" + java.util.UUID.randomUUID().toString();
+    }
+
+    public Boolean getSellerDeleted() {
+        return sellerDeleted;
+    }
+
+    public void setSellerDeleted(Boolean sellerDeleted) {
+        this.sellerDeleted = sellerDeleted;
+    }
+
+    public Boolean getBuyerDeleted() {
+        return buyerDeleted;
+    }
+
+    public void setBuyerDeleted(Boolean buyerDeleted) {
+        this.buyerDeleted = buyerDeleted;
     }
 }

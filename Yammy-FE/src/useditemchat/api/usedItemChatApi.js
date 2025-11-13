@@ -69,4 +69,14 @@ export const usedItemChatApi = {
     );
     return response.data;
   },
+
+  /**
+ * 채팅방 나가기
+ * @param {string} roomKey - 채팅방 키
+ * @returns {Promise}
+ */
+leaveChatRoom: async (roomKey) => {
+  await apiClient.delete(`/useditem/chat/room/${roomKey}`);
+},
+
 };

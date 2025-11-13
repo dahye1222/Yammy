@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 중고거래 채팅방 서비스
@@ -47,14 +48,36 @@ public class UsedItemChatRoomService {
         }
 
         // 3. 기존 채팅방 찾기
-        return usedItemChatRoomRepository.findByUsedItemIdAndBuyerId(usedItemId, buyerId)
-                .orElseGet(() -> {
-                    try {
-                        return createNewUsedItemChatRoom(usedItemId, sellerId, buyerId);
-                    } catch (Exception e) {
-                        throw new RuntimeException("채팅방 생성 실패", e);
-                    }
-                });
+        Optional<UsedItemChatRoom> existingRoom =
+                usedItemChatRoomRepository.findByUsedItemIdAndBuyerId(usedItemId, buyerId);
+
+        if (existingRoom.isPresent()) {
+            UsedItemChatRoom room = existingRoom.get();
+
+            // 한쪽이라도 나간 상태면 양쪽 플래그 초기화 (채팅 재개)
+            if (room.getSellerDeleted() || room.getBuyerDeleted()) {
+                room.setSellerDeleted(false);
+                room.setBuyerDeleted(false);
+                usedItemChatRoomRepository.save(room);
+
+                // Firestore 동기화
+                Firestore firestore = FirestoreClient.getFirestore();
+                Map<String, Object> updates = new HashMap<>();
+                updates.put("sellerDeleted", false);
+                updates.put("buyerDeleted", false);
+
+                firestore.collection("useditem-chats")
+                        .document(room.getRoomKey())
+                        .update(updates)
+                        .get();
+
+                log.info("Chat room re-opened: {}", room.getRoomKey());
+            }
+
+            return room;
+        } else {
+            return createNewUsedItemChatRoom(usedItemId, sellerId, buyerId);
+        }
     }
 
     /**
@@ -73,10 +96,12 @@ public class UsedItemChatRoomService {
         // MySQL 저장
         UsedItemChatRoom chatRoom = UsedItemChatRoom.builder()
                 .roomKey(roomKey)
-                .usedItem(usedItem) //
+                .usedItem(usedItem)
                 .sellerId(sellerId)
                 .buyerId(buyerId)
                 .status(UsedChatRoomStatus.ACTIVE)
+                .sellerDeleted(false)  // 추가
+                .buyerDeleted(false)   // 추가
                 .build();
 
         UsedItemChatRoom saved = usedItemChatRoomRepository.save(chatRoom);
@@ -88,6 +113,8 @@ public class UsedItemChatRoomService {
         firestoreData.put("sellerId", saved.getSellerId());
         firestoreData.put("buyerId", saved.getBuyerId());
         firestoreData.put("status", saved.getStatus().name());
+        firestoreData.put("sellerDeleted", false);
+        firestoreData.put("buyerDeleted", false);
         firestoreData.put("createdAt", Timestamp.now());
 
         firestore.collection("useditem-chats")
@@ -148,20 +175,51 @@ public class UsedItemChatRoomService {
      * 중고거래 채팅방 삭제 (MySQL + Firestore)
      */
     @Transactional
-    public void deleteUsedItemChatRoom(String roomKey) throws Exception {
+    public void deleteUsedItemChatRoom(String roomKey, Long memberId) throws Exception {
         Firestore firestore = FirestoreClient.getFirestore();
 
         UsedItemChatRoom room = getUsedItemChatRoom(roomKey);
 
-        // Firestore 삭제
-        firestore.collection("useditem-chats")
-                .document(roomKey)
-                .delete()
-                .get();
+        // 권한 확인
+        if(!room.getSellerId().equals(memberId) && !room.getBuyerId().equals(memberId)) {
+            throw new IllegalArgumentException("채팅방 나가기 권한이 없습니다.");
+        }
 
-        // MySQL 삭제
-        usedItemChatRoomRepository.delete(room);
+        if (room.getSellerId().equals(memberId)) {
+            room.setSellerDeleted(true);
+        } else {
+            room.setBuyerDeleted(true);
+        }
 
-        log.info("Deleted used item chat room: {}", roomKey);
+        if (room.getSellerDeleted() && room.getBuyerDeleted()) {
+            // Firestore 삭제
+            firestore.collection("useditem-chats")
+                    .document(roomKey)
+                    .delete()
+                    .get();
+
+            // MySQL 삭제
+            usedItemChatRoomRepository.delete(room);
+
+            log.info("Deleted used item chat room: {}", roomKey);
+        } else {
+            // 한쪽만 나간 경우 플래그만 업데이트
+            usedItemChatRoomRepository.save(room);
+
+            // Firestore 동기화
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("sellerDeleted", room.getSellerDeleted());
+            updates.put("buyerDeleted", room.getBuyerDeleted());
+
+            firestore.collection("useditem-chats")
+                    .document(roomKey)
+                    .update(updates)
+                    .get();
+
+            log.info("User {} left chat room: {}", memberId, roomKey);
+
+        }
+
+
     }
 }
