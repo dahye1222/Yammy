@@ -207,7 +207,11 @@ const CommentPage = () => {
       {postData && (
         <div className="post-card">
           <div className="post-header">
-            <div className="post-author">
+            <div
+              className="post-author"
+              onClick={() => navigate(`/user/${postData.memberId}`)}
+              style={{ cursor: 'pointer' }}
+            >
               <img
                 src={postData.profileImage || '/nomal.jpg'}
                 alt={postData.nickname}
@@ -273,8 +277,14 @@ const CommentPage = () => {
                   src={comment.profileImage || '/nomal.jpg'}
                   alt={comment.nickname}
                   className="comment-avatar"
+                  onClick={() => navigate(`/user/${comment.memberId}`)}
+                  style={{ cursor: 'pointer' }}
                 />
-                <div className="comment-meta-info">
+                <div
+                  className="comment-meta-info"
+                  onClick={() => navigate(`/user/${comment.memberId}`)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <span className="comment-author">{comment.nickname}</span>
                   <span className="comment-time">{formatTimeAgo(comment.createdAt)}</span>
                 </div>
