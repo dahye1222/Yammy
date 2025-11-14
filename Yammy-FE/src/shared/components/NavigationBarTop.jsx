@@ -1,23 +1,45 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { createPortal } from "react-dom";
 import useAuthStore from "../../stores/authStore";
 import { getMyPoint } from "../../payment/api/pointAPI";
+import { getMemberInfo } from "../../predict/api/predictApi";
 import { getTeamColors } from "../../sns/utils/teamColors";
 import logo from "../../assets/images/logo.png";
 import "./NavigationBar.css";
+import { usedItemChatApi } from "../../useditemchat/api/usedItemChatApi";
+import Bell from "../../assets/images/bell.png"
 
 const NavigationBarTop = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const token = localStorage.getItem("accessToken");
   const { isLoggedIn, user, logOut, initialize, syncFromLocalStorage } = useAuthStore();
+
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [teamColors, setTeamColors] = useState(getTeamColors());
   const [balance, setBalance] = useState(null);
+  const [totalUnreadCount, setTotalUnreadCount] = useState(0);
   const [error, setError] = useState(null);
+  const [userPoints, setUserPoints] = useState(0);
+  const [pointsLoading, setPointsLoading] = useState(true);
   const dropdownRef = useRef(null); 
 
-  const format = (num) => num.toLocaleString();
+  const formatYamUnit = (value) => {
+    if (value < 10000) {
+      return value.toLocaleString(); 
+    }
+
+    if (value < 100000000) {
+      // 1만 - 1억 미만
+      const man = value / 10000; 
+      return man % 1 === 0 ? `${man}만` : `${man.toFixed(1)}만`;
+    }
+
+    // 1억 이상
+    const uk = value / 100000000;
+    return uk % 1 === 0 ? `${uk}억` : `${uk.toFixed(1)}억`;
+  };
 
   useEffect(() => {
     initialize();
@@ -41,11 +63,13 @@ const NavigationBarTop = () => {
         setShowUserMenu(false);
       }
     };
+
     if (showUserMenu) {
       window.addEventListener("click", handleClickOutside);
     } else {
       window.removeEventListener("click", handleClickOutside);
     }
+
     return () => window.removeEventListener("click", handleClickOutside);
   }, [showUserMenu]);
 
@@ -82,17 +106,73 @@ const NavigationBarTop = () => {
         location.pathname === "/mypoint" ||
         location.pathname === "/chatlist" ||
         location.pathname === "/checkout" ||
+        location.pathname === "/bankstatement" ||
+        location.pathname.startsWith("/withdraw") ||
         location.pathname.startsWith("/success") ||
         location.pathname.startsWith("/fail"));
+
     if (shouldFetch) fetchData();
   }, [token, isLoggedIn, location.pathname]);
 
+  // 포인트 변경 이벤트 감지
   useEffect(() => {
     const handlePointUpdate = () => {
-      if (token && isLoggedIn) getMyPoint(token).then((res) => setBalance(res.balance));
+      if (token && isLoggedIn)
+        getMyPoint(token).then((res) => setBalance(res.balance));
     };
     window.addEventListener("pointUpdated", handlePointUpdate);
     return () => window.removeEventListener("pointUpdated", handlePointUpdate);
+  }, [token, isLoggedIn]);
+
+  // Predict 페이지용 팬심 로드
+  useEffect(() => {
+    const loadUserPoints = async () => {
+      if (!isLoggedIn || !location.pathname.startsWith("/prediction")) return;
+
+      try {
+        setPointsLoading(true);
+        const memberInfo = await getMemberInfo();
+        setUserPoints(memberInfo.exp || 0);
+      } catch (error) {
+        console.error('Error loading user points:', error.message);
+        setUserPoints(0);
+      } finally {
+        setPointsLoading(false);
+      }
+    };
+
+    loadUserPoints();
+  }, [isLoggedIn, location.pathname]);
+
+  // 중고채팅 읽지 않은 메시지 수 조회
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      if (!token || !isLoggedIn) return;
+      
+      try {
+        const count = await usedItemChatApi.getTotalUnreadCount();
+        setTotalUnreadCount(count);
+      } catch (error) {
+        console.error('Failed to fetch unread count:', error);
+      }
+    };
+    
+    fetchUnreadCount();
+    
+    // 30초마다 갱신
+    const interval = setInterval(fetchUnreadCount, 30000);
+
+    // 채팅방 목록 진입 시 즉시 갱신
+    const handleChatListViewed = () => {
+      fetchUnreadCount();
+    };
+
+    window.addEventListener('chatListViewed', handleChatListViewed);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('chatListViewed', handleChatListViewed);
+    };
   }, [token, isLoggedIn]);
 
   if (shouldHideNav) return null;
@@ -113,84 +193,116 @@ const NavigationBarTop = () => {
     (location.pathname.startsWith("/useditem") ||
       location.pathname === "/mypoint" ||
       location.pathname === "/chatlist" ||
+      location.pathname === "/bankstatement" ||
+      location.pathname.startsWith("/withdraw") ||
       location.pathname === "/checkout" ||
       location.pathname.startsWith("/success") ||
       location.pathname.startsWith("/fail"));
 
-  const currentLogo = logo;
+  const isPredictPage = location.pathname.startsWith("/prediction");
 
-  return (
+  const currentLogo = logo;
+  
+  return createPortal(
     <nav className="nav-bar-top" style={{ backgroundColor: teamColors.bgColor }}>
       <div className="sns-logo" onClick={() => navigate("/")}>
         <img src={currentLogo} alt="Yammy" className="sns-logo-img" />
       </div>
 
-      <div className="header-right">
-        {shouldShowBalanceButton ? (
-          <div className="ypay-baseball-wrapper">
-            <div className="ypay-info" onClick={goMyPoint}>
-              <div className="ypay-logo-circle">⚾</div>
-              <span className="ypay-balance">
-                {balance !== null
-                  ? (() => {
-                      const str = format(balance);
-                      return str.length > 5 ? `${str.slice(0, 3)}...` : `${str}`;
-                    })()
-                  : error
-                  ? "오류"
-                  : "로딩 중..."}
+      {isPredictPage ? (
+        <div className="header-right">
+          {isLoggedIn && (
+            <div className="predict-points-display">
+              <span className="points-label">보유 팬심:</span>
+              <span className="points-value">
+                {pointsLoading ? "로딩중..." : `${userPoints.toLocaleString()}팬심`}
               </span>
             </div>
-            <button className="chatlist-btn" onClick={goChatList}>
-              채팅방
-            </button>
-            <button className="ypay-charge-btn" onClick={goMyPoint}>
-              충전
-            </button>
-          </div>
-        ) : (
-          <>
-            {isLoggedIn ? (
-              <div className="user-menu-wrapper" ref={dropdownRef}>
-                <button
-                  className="user-button"
-                  onClick={(e) => {
-                    e.stopPropagation(); // 버튼 클릭 시 외부 클릭 이벤트 막기
-                    setShowUserMenu(!showUserMenu);
-                  }}
-                >
-                  <img
-                    src={user?.profileImage}
-                    alt="프로필"
-                    className="user-profile-img"
-                  />
-                  <i
-                    className={`fas fa-chevron-down ${
-                      showUserMenu ? "rotate" : ""
-                    }`}
-                  ></i>
-                </button>
-
-                {showUserMenu && (
-                  <div className="user-dropdown">
-                    <button onClick={() => navigate("/mypage")}>
-                      <i className="fas fa-user"></i> 내 프로필
-                    </button>
-                    <button onClick={handleLogout}>
-                      <i className="fas fa-sign-out-alt"></i> 로그아웃
-                    </button>
-                  </div>
+          )}
+        </div>
+      ) : (
+        <div className="header-right">
+          {shouldShowBalanceButton ? (
+            <>
+              <div className="header-notification" onClick={goChatList}>
+                  <img src={Bell} alt="알림" className="bell-icon"/>
+                {totalUnreadCount > 0 && (
+                  <span className="notification-badge">
+                    {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
+                  </span>
                 )}
               </div>
-            ) : (
-              <button className="login-button" onClick={() => navigate("/login")}>
-                로그인
-              </button>
-            )}
-          </>
-        )}
-      </div>
-    </nav>
+
+              <div className="ypay-baseball-wrapper">
+                <div className="ypay-info" onClick={() => navigate("/bankstatement")}>
+                  <div className="ypay-logo-circle">⚾</div>
+
+                  <span className="ypay-balance">
+                    {balance !== null
+                      ? `${formatYamUnit(balance)}`
+                      : error
+                      ? "오류"
+                      : "로딩 중..."}
+                  </span>
+                </div>
+
+                <button className="chatlist-btn" onClick={goChatList}>
+                  채팅방
+                </button>
+                
+                <button className="ypay-charge-btn" onClick={goMyPoint}>
+                  충전
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              {isLoggedIn ? (
+                <div className="user-menu-wrapper" ref={dropdownRef}>
+                  <button
+                    className="user-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowUserMenu(!showUserMenu);
+                    }}
+                  >
+                    <img
+                      src={user?.profileImage}
+                      alt="프로필"
+                      className="user-profile-img"
+                    />
+                    <i
+                      className={`fas fa-chevron-down ${
+                        showUserMenu ? "rotate" : ""
+                      }`}
+                    ></i>
+                  </button>
+
+                  {showUserMenu && (
+                    <div className="user-dropdown">
+                      <button onClick={() => navigate("/mypage")}>
+                        <i className="fas fa-user"></i> 내 프로필
+                      </button>
+                      <button onClick={handleLogout}>
+                        <i className="fas fa-sign-out-alt"></i> 로그아웃
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  className="login-button"
+                  onClick={() => navigate("/login")}
+                >
+                  로그인
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </nav>,
+    document.body
   );
 };
 

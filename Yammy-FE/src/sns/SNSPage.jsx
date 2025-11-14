@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { FaHeart } from "react-icons/fa";
-import { FiMessageCircle, FiSend } from "react-icons/fi";
+import { FiMessageCircle } from "react-icons/fi";
 import { getAllPosts, togglePostLike, followUser, unfollowUser, deletePost } from './api/snsApi';
 import { getTeamColors } from './utils/teamColors';
+import SNSNavigationBar from './components/SNSNavigationBar';
 import './styles/SNSPage.css';
 
 // 시간 포맷 함수
@@ -24,17 +26,75 @@ const formatTimeAgo = (dateString) => {
   return koreaTime.toLocaleDateString('ko-KR');
 };
 
+// 이미지 모달 컴포넌트
+const ImageModal = ({ images, initialIndex, onClose }) => {
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+  const handlePrev = (e) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+  };
+
+  const handleNext = (e) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
+  };
+
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
+
+  return (
+    <div className="image-modal-overlay" onClick={onClose}>
+      <button className="modal-close-btn" onClick={onClose}>×</button>
+
+      <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+        <img
+          src={images[currentIndex]}
+          alt={`Image ${currentIndex + 1}`}
+          className="modal-image"
+        />
+
+        {images.length > 1 && (
+          <>
+            <button className="modal-nav-btn prev" onClick={handlePrev}>
+              ‹
+            </button>
+            <button className="modal-nav-btn next" onClick={handleNext}>
+              ›
+            </button>
+            <div className="modal-image-counter">
+              {currentIndex + 1} / {images.length}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // 이미지 캐러셀 컴포넌트
-const ImageCarousel = ({ images, postId }) => {
+const ImageCarousel = ({ images, postId, onImageClick }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startPos, setStartPos] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
   const [dragStartTime, setDragStartTime] = useState(0);
+  const [hasDragged, setHasDragged] = useState(false);
 
   const handleDragStart = (e) => {
     if (images.length <= 1) return;
     setIsDragging(true);
+    setHasDragged(false);
     const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
     setStartPos(clientX);
     setDragOffset(0);
@@ -44,6 +104,7 @@ const ImageCarousel = ({ images, postId }) => {
   const handleDragMove = (e) => {
     if (!isDragging || images.length <= 1) return;
     e.preventDefault();
+    setHasDragged(true);
     const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
     const diff = clientX - startPos;
     const containerWidth = e.currentTarget.offsetWidth;
@@ -63,6 +124,13 @@ const ImageCarousel = ({ images, postId }) => {
       if (currentIndex > 0) setCurrentIndex(currentIndex - 1);
     }
     setDragOffset(0);
+  };
+
+  const handleImageClick = () => {
+    // 드래그가 아닌 클릭만 처리
+    if (!hasDragged) {
+      onImageClick(currentIndex);
+    }
   };
 
   return (
@@ -85,7 +153,7 @@ const ImageCarousel = ({ images, postId }) => {
           }}
         >
           {images.map((image, index) => (
-            <div key={index} className="carousel-slide">
+            <div key={index} className="carousel-slide" onClick={handleImageClick}>
               <img src={image} alt={`post ${postId} image ${index + 1}`} draggable="false" />
             </div>
           ))}
@@ -111,6 +179,7 @@ const SNSPage = () => {
   const [nextCursor, setNextCursor] = useState(null);
   const [openMenuPostId, setOpenMenuPostId] = useState(null);
   const [followingInProgress, setFollowingInProgress] = useState(new Set());
+  const [modalImage, setModalImage] = useState(null);
   const observerTarget = useRef(null);
   const currentUserId = JSON.parse(localStorage.getItem('memberId') || 'null');
   const teamColors = getTeamColors();
@@ -124,6 +193,7 @@ const SNSPage = () => {
     setIsLoading(true);
     try {
       const response = await getAllPosts(nextCursor);
+       console.log("SNS 응답:", response);
       const newPosts = response.posts;
       setPosts((prev) => [...prev, ...newPosts]);
       setNextCursor(response.nextCursor);
@@ -241,6 +311,7 @@ const SNSPage = () => {
 
   return (
     <div className="sns-page" style={{ '--team-color': teamColors.bgColor }}>
+      <SNSNavigationBar />
       <div className="feed-container">
         {posts.map((post) => (
           <div key={post.id} className="post-card">
@@ -289,9 +360,9 @@ const SNSPage = () => {
                     onClick={() => handleToggleFollow(post.memberId, post.isFollowing)}
                     disabled={followingInProgress.has(post.memberId)}
                   >
-                    {followingInProgress.has(post.memberId) 
-                      ? '처리중...' 
-                      : post.isFollowing ? '팔로잉' : '팔로우'}
+                    {followingInProgress.has(post.memberId)
+                      ? '처리중...'
+                      : post.isFollowing ? '언팔로우' : '팔로우'}
                   </button>
                 )}
               </div>
@@ -305,7 +376,13 @@ const SNSPage = () => {
             )}
 
             {/* 이미지 캐러셀 */}
-            <ImageCarousel images={post.imageUrls} postId={post.id} />
+            <ImageCarousel
+              images={post.imageUrls}
+              postId={post.id}
+              onImageClick={(index) =>
+                setModalImage({ images: post.imageUrls, initialIndex: index })
+              }
+            />
 
             {/* 액션 버튼 */}
             <div className="post-actions">
@@ -324,9 +401,6 @@ const SNSPage = () => {
                   <FiMessageCircle className="action-icon comment-icon" />
                   <span className="action-count">{post.commentCount}</span>
                 </button>
-                <button className="action-btn">
-                  <FiSend className="action-icon send-icon" />
-                </button>
               </div>
             </div>
           </div>
@@ -340,12 +414,27 @@ const SNSPage = () => {
           <p>게시물을 불러오는 중...</p>
         </div>
       )}
-      <button
-        className="floating-create-btn"
-        onClick={() => navigate('/post/create')}
-      >
-        +
-      </button>
+
+      {/* 이미지 모달 */}
+      {modalImage && (
+        <ImageModal
+          images={modalImage.images}
+          initialIndex={modalImage.initialIndex}
+          onClose={() => setModalImage(null)}
+        />
+      )}
+
+      {/* 플로팅 버튼을 Portal로 body에 렌더링 */}
+      {createPortal(
+        <button
+          className="floating-create-btn"
+          onClick={() => navigate('/post/create')}
+          style={{ '--team-color': teamColors.bgColor }}
+        >
+          +
+        </button>,
+        document.body
+      )}
     </div>
   );
 };
