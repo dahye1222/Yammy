@@ -33,6 +33,9 @@ public class WithdrawalService {
     @Transactional
     public WithdrawalResponse requestWithdrawal(Long memberId, WithdrawalRequest dto) {
 
+        // 계좌번호 검증
+        validateBankAccount(dto.getBankName(), dto.getAccountNumber());
+
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 회원입니다."));
 
@@ -46,14 +49,14 @@ public class WithdrawalService {
 
         withdrawalRepository.save(withdrawal);
 
-        // 자동 승인
+        // 자동 승인 처리
         withdrawal.setStatus(WithdrawalStatus.APPROVED);
         withdrawal.setUpdatedAt(LocalDateTime.now());
 
         Point point = pointRepository.findByMember(member)
                 .orElseThrow(() -> new RuntimeException("포인트 지갑이 없습니다."));
 
-        // 포인트 부족 시 거절 처리
+        // 잔액 부족 시 거절 처리
         if (point.getBalance() < dto.getAmount()) {
             withdrawal.setStatus(WithdrawalStatus.DENIED);
             withdrawal.setDenyReason("포인트 잔액 부족");
@@ -65,11 +68,11 @@ public class WithdrawalService {
         long newBalance = point.getBalance() - dto.getAmount();
         point.setBalance(newBalance);
 
-        // 거래 내역 생성
+        // 거래 내역 기록
         PointTransaction pointtransaction = new PointTransaction();
         pointtransaction.setMember(member);
         pointtransaction.setPoint(point);
-        pointtransaction.setAmount(-dto.getAmount()); // 출금
+        pointtransaction.setAmount(-dto.getAmount());
         pointtransaction.setBalanceAfter(newBalance);
         pointtransaction.setType(TransactionType.WITHDRAW);
         pointtransaction.setCreatedAt(LocalDateTime.now());
@@ -83,6 +86,53 @@ public class WithdrawalService {
         withdrawal.setUpdatedAt(LocalDateTime.now());
 
         return convertToResponse(withdrawal);
+    }
+
+    // 계좌번호 패턴 검증
+    private void validateBankAccount(String bankName, String accountNumber) {
+
+        String pattern;
+
+        switch (bankName) {
+            case "카카오뱅크":
+                pattern = "^3333-\\d{2}-\\d{7}$"; // 4-2-7
+                break;
+
+            case "토스뱅크":
+                pattern = "^1000-\\d{4}-\\d{4}$"; // 4-4-4
+                break;
+
+            case "국민은행":
+                pattern = "^\\d{3}-\\d{2}-\\d{7}$"; // 3-2-7
+                break;
+
+            case "신한은행":
+                pattern = "^110-\\d{6}$"; // 3-6
+                break;
+
+            case "기업은행":
+                pattern = "^\\d{3}-\\d{6}-\\d{2}-\\d{3}$"; // 3-6-2-3
+                break;
+
+            case "농협은행":
+                pattern = "^\\d{3}-\\d{4}-\\d{4}-\\d{2}$"; // 3-4-4-2
+                break;
+
+            case "우리은행":
+                pattern = "^\\d{3}-\\d{6}-\\d{2}$"; // 3-6-2
+                break;
+
+            case "하나은행":
+                pattern = "^\\d{3}-\\d{6}-\\d{3}$"; // 3-6-3
+                break;
+
+            default:
+                throw new RuntimeException("지원하지 않는 은행입니다.");
+        }
+
+        if (!accountNumber.matches(pattern)) {
+            throw new RuntimeException("계좌번호 형식이 올바르지 않습니다. (" + bankName + ")");
+        }
     }
 
     private WithdrawalResponse convertToResponse(Withdrawal withdrawal) {
@@ -115,4 +165,3 @@ public class WithdrawalService {
     }
 
 }
-
