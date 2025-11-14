@@ -89,6 +89,7 @@ ipfs:
   api-secret: ${PINATA_API_SECRET}
   gateway: ${PINATA_GATEWAY:https://gateway.pinata.cloud/ipfs/}
 
+
 #firebase:
 #  type: ${FIREBASE_TYPE}
 #  project-id: ${FIREBASE_PROJECT_ID}
