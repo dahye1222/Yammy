@@ -222,22 +222,7 @@ const NavigationBarTop = () => {
       ) : (
         <div className="header-right">
           {shouldShowBalanceButton ? (
-            <div className="ypay-baseball-wrapper">
-              <div className="ypay-info" onClick={() => navigate("/bankstatement")}>
-                <div className="ypay-logo-circle">⚾</div>
-
-                <span className="ypay-balance">
-                  {balance !== null
-                    ? `${formatYamUnit(balance)}`
-                    : error
-                    ? "오류"
-                    : "로딩 중..."}
-                </span>
-              </div>
-
-              <button className="chatlist-btn" onClick={goChatList}>
-                채팅방
-              </button>
+            <>
               <div className="header-notification" onClick={goChatList}>
                 <span className="bell-icon">🔔</span>
                 {totalUnreadCount > 0 && (
@@ -246,11 +231,29 @@ const NavigationBarTop = () => {
                   </span>
                 )}
               </div>
-              
-              <button className="ypay-charge-btn" onClick={goMyPoint}>
-                충전
-              </button>
-            </div>
+
+              <div className="ypay-baseball-wrapper">
+                <div className="ypay-info" onClick={() => navigate("/bankstatement")}>
+                  <div className="ypay-logo-circle">⚾</div>
+
+                  <span className="ypay-balance">
+                    {balance !== null
+                      ? `${formatYamUnit(balance)}`
+                      : error
+                      ? "오류"
+                      : "로딩 중..."}
+                  </span>
+                </div>
+
+                <button className="chatlist-btn" onClick={goChatList}>
+                  채팅방
+                </button>
+                
+                <button className="ypay-charge-btn" onClick={goMyPoint}>
+                  충전
+                </button>
+              </div>
+            </>
           ) : (
             <>
               {isLoggedIn ? (
