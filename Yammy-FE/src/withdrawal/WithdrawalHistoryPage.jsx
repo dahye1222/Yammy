@@ -5,7 +5,6 @@ import { getMyPoint } from "../payment/api/pointAPI"
 import "./styles/WithdrawalHistoryPage.css"
 
 const WithdrawalHistoryPage = () => {
-  const navigate = useNavigate()
   const token = localStorage.getItem("accessToken")
 
   const [history, setHistory] = useState([])
@@ -15,7 +14,7 @@ const WithdrawalHistoryPage = () => {
   // 잔액 포맷
   const formatNum = (n) => n.toLocaleString()
 
-  // ⏰ KST(한국 시간) 변환
+  // KST(한국 시간) 변환
   const formatKST = (dateString) => {
     if (!dateString) return "-"
     return new Date(dateString).toLocaleString("ko-KR", {
@@ -47,9 +46,7 @@ const WithdrawalHistoryPage = () => {
       console.error("잔액 불러오기 실패:", err)
     }
   }
-
-  if (loading) return <div className="loading">불러오는 중...</div>
-
+  
   return (
     <div className="history-wrapper">
       <div className="history-card">
