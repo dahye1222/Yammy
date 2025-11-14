@@ -1,27 +1,29 @@
-/* 반응형 레이아웃 */
+/* 반응???�이?�웃 */
 .app-container {
   width: 100%;
-  min-height: 100vh;
+  height: 100vh; 
   margin: 0;
   padding: 0;
   background-color: #ffffff;
   box-sizing: border-box;
-  overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
-/* 스와이프 애니메이션을 위한 래퍼 */
+/* 콘텐�??�퍼 */
 .app-content-wrapper {
   width: 100%;
-  min-height: 100vh;
+  flex: 1; 
   padding-bottom: 60px;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: auto; 
+  position: relative;
 }
 
-/* 페이지 전환 애니메이션 */
+/* ?�이지 ?�환 ?�니메이??*/
 @keyframes slideInFromRight {
   from {
     transform: translateX(100%);
@@ -72,4 +74,9 @@
 
 .app-container.slide-right .app-content-wrapper {
   animation: slideInFromLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  box-sizing: border-box;
+}
+/* Reserve space for fixed top bar when present */
+.app-content-wrapper.with-topbar {
+  padding-top: 72px;
 }
