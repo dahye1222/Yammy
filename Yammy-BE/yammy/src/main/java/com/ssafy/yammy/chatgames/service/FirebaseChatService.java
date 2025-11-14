@@ -31,7 +31,7 @@ public class FirebaseChatService {
         Blob blob = bucket.create(path, file.getBytes(), file.getContentType());
 
         // 1일 만료 Signed URL 생성
-        String imageUrl = blob.signUrl(1, TimeUnit.DAYS).toString();
+        String imageUrl = blob.signUrl(7, TimeUnit.DAYS).toString();
 
         log.info("Image uploaded: {} (size: {} bytes)", path, file.getSize());
         return imageUrl;
@@ -57,6 +57,31 @@ public class FirebaseChatService {
                 .get();
 
         log.info("Message saved: {} in room: {}", docRef.getId(), roomKey);
+        return docRef.getId();
+    }
+
+    // 이미지 메시지용 별칭 (기존 메서드 재사용)
+    public String saveImageMessage(String roomKey, Long memberId, String nickname, String imageUrl) throws Exception {
+        return saveMessage(roomKey, memberId, nickname, imageUrl);
+    }
+
+    // 텍스트 메시지용 새 메서드 (어쩔 수 없이 추가)
+    public String saveTextMessage(String roomKey, Long memberId, String nickname, String message) throws Exception {
+        Firestore firestore = FirestoreClient.getFirestore();
+
+        var docRef = firestore.collection("chatRooms")
+                .document(roomKey)
+                .collection("messages")
+                .add(Map.of(
+                        "uid", memberId.toString(),
+                        "nickname", nickname,
+                        "type", "text",
+                        "text", message,
+                        "createdAt", Timestamp.now()
+                ))
+                .get();
+
+        log.info("Text message saved: {} in room: {}", docRef.getId(), roomKey);
         return docRef.getId();
     }
 }
