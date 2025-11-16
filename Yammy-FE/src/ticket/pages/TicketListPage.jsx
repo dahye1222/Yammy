@@ -79,11 +79,6 @@ const TicketListPage = () => {
                 </button>
             </div>
 
-            {/* 안내 문구 */}
-            <div className="ticket-info">
-                <p>💡 티켓을 클릭하면 뒷면을 확인할 수 있어요</p>
-            </div>
-
             {/* 팀 필터 */}
             <div className="team-filter-container">
                 <button
@@ -113,6 +108,11 @@ const TicketListPage = () => {
                             {teamName.split(' ')[0]}
                         </button>
                     ))}
+            </div>
+
+            {/* 안내 문구 */}
+            <div className="ticket-info">
+                <p>💡 티켓을 클릭하면 뒷면을 확인할 수 있어요</p>
             </div>
 
             {/* 티켓 그리드 */}

@@ -196,7 +196,7 @@
     font-size: 12px;
     font-weight: 600;
     color: #000;
-    opacity: 0.8;
+    opacity: 1;
     min-width: 60px;
 }
 
@@ -205,9 +205,10 @@
     font-weight: 600;
     text-align: right;
     flex: 1;
-    background: none;
+    background: none !important;
     padding: 0;
     border-radius: 0;
+    color: #000;
 }
 
 .score-row {
@@ -226,7 +227,7 @@
 
 .comment-row .info-value {
     font-style: italic;
-    opacity: 0.9;
+    opacity: 1;
 }
 
 .review-section {
