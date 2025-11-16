@@ -76,7 +76,8 @@ public class UsedItemService {
     }
 
     // 게시물 작성
-    public UsedItemResponseDto createTrade(HttpServletRequest request, UsedItemRequestDto dto, List<MultipartFile> imageFiles) {
+    public UsedItemResponseDto createTrade(HttpServletRequest request, UsedItemRequestDto dto) {
+
         String token = extractToken(request);
         Long memberId = jwtTokenProvider.getMemberId(token);
 
@@ -87,7 +88,7 @@ public class UsedItemService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "팀을 선택해야 합니다.");
         }
 
-        // 게시물 작성 시 제목 및 글 내용 욕설 필터링
+        // 욕설 필터링
         String cleanTitle = badWordsFilterUtil.maskBadWords(dto.getTitle());
         String cleanDesc = badWordsFilterUtil.maskBadWords(dto.getDescription());
 
@@ -99,22 +100,15 @@ public class UsedItemService {
         usedItem.setPrice(dto.getPrice());
         usedItem.setTeam(dto.getTeam());
 
-        // 사진 연결
-        if (imageFiles != null && !imageFiles.isEmpty()) {
-            for (MultipartFile imageFile : imageFiles) {
-                String fileUrl = photoService.uploadPhoto(imageFile, "useditem");
-                Photo photo = new Photo();
-                photo.setMember(member);
-                photo.setFileUrl(fileUrl);
-                photo.setS3Key(extractS3KeyFromUrl(fileUrl));
-                photo.setContentType(imageFile.getContentType());
-                usedItem.addPhoto(photo);
-            }
+        // presigned + photoId 기반 사진 연결
+        if (dto.getPhotoIds() != null && !dto.getPhotoIds().isEmpty()) {
+            List<Photo> photos = photoRepository.findAllById(dto.getPhotoIds());
+            photos.forEach(usedItem::addPhoto);
         }
 
         UsedItem savedItem = usedItemRepository.save(usedItem);
 
-        // 게시글 작성 보상: EXP 10
+        // 경험치 증가
         member.increaseExp(50L);
         memberRepository.save(member);
 
