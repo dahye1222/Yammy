@@ -473,8 +473,12 @@ const TicketCard = ({ ticket, onNftMinted }) => {
                                         className="nft-mint-button"
                                         onClick={handleMintNFT}
                                         disabled={isMinting || !canMintNFT(ticket)}
+                                        style={{
+                                            backgroundColor: (isMinting || !canMintNFT(ticket)) ? '#ccc' : teamColors.bgColor,
+                                            boxShadow: (isMinting || !canMintNFT(ticket)) ? 'none' : `0 4px 15px ${teamColors.bgColor}66`
+                                        }}
                                     >
-                                        {isMinting ? '🔄 발급 중...' : '🎫 NFT로 발급하기'}
+                                        {isMinting ? '발급 중...' : 'NFT로 발급하기'}
                                     </button>
                                     {mintStatus && (
                                         <p className="mint-status">{mintStatus}</p>
