@@ -47,14 +47,14 @@ public class UsedItemController {
 
     // 게시물 작성
     @Operation(summary = "중고 거래 게시물 작성")
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping
     public ResponseEntity<UsedItemResponseDto> createTrade(
             HttpServletRequest request,
-            @Valid @RequestPart("data") UsedItemRequestDto dto,
-            @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles) {
+            @Valid @RequestBody UsedItemRequestDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(usedItemService.createTrade(request, dto, imageFiles));
+                .body(usedItemService.createTrade(request, dto));
     }
+
 
     // 게시물 수정
     @Operation(summary = "중고 거래 게시물 수정")
