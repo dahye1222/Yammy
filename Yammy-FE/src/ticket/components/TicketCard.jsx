@@ -74,7 +74,7 @@ export const GameTitle = ({ gameName, size = 'medium' }) => {
     const teams = parseGameTeams(gameName);
 
     const styles = {
-        small: { fontSize: '19px', logoSize: '28px', gap: '8px', teamGap: '6px' },
+        small: { fontSize: '16px', logoSize: '24px', gap: '6px', teamGap: '5px' },
         medium: { fontSize: '28px', logoSize: '40px', gap: '12px', teamGap: '10px' },
         large: { fontSize: '32px', logoSize: '44px', gap: '14px', teamGap: '12px' }
     };

@@ -306,7 +306,7 @@ const UserProfile = () => {
                                         key={ticket.id || ticket.ticketId}
                                         ticket={ticket}
                                         onNftMinted={loadTickets}
-                                        showNFTSection={isOwnProfile}
+                                        showNFTSection={false}
                                     />
                                 ))}
                             </div>
