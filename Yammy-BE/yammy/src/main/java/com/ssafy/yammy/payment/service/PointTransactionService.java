@@ -38,7 +38,7 @@ public class PointTransactionService {
                 if (point.getBalance() < amount) {
                     throw new IllegalStateException("포인트가 부족합니다.");
                 }
-                point.decrease(amount);  // 예치 → 차감
+                point.decrease(amount);  // 예치 -> 차감
             }
 
             case ESCROW_CONFIRMED -> {
