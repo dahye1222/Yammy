@@ -118,7 +118,7 @@ function UsedItemChatList() {
                         </span>
                       </div>
 
-                      {/* 2. 중고거래 제목 (추가!) */}
+                      {/* 중고거래 제목 */}
                       <div className="chat-list-item-title-row">
                         <p className="chat-list-item-title">
                           {room.itemTitle || "중고거래"}
