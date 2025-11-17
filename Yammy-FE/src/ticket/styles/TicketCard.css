@@ -90,6 +90,9 @@
     color: #666;
     margin: 0 0 16px 0;
     font-style: italic;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
 }
 
 .ticket-front-details {
@@ -116,6 +119,9 @@
     font-size: 13px;
     font-weight: 600;
     color: #333;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
 }
 
 .ticket-decoration {
@@ -209,6 +215,9 @@
     padding: 0;
     border-radius: 0;
     color: #000;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
 }
 
 .score-row {
