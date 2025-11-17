@@ -36,7 +36,7 @@
 .chat-list-item {
   background: #fff;
   border-bottom: 1px solid #e5e7eb;
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -77,7 +77,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 2px;
+  margin-bottom: 0px;
 }
 
 .chat-list-nickname {
@@ -111,7 +111,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   margin: 0;        
-  line-height: 1.4;
+  line-height: 1.2;
 }
 
 /* unread */
