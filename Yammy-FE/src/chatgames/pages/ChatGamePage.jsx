@@ -30,13 +30,13 @@ export default function ChatGamePage() {
   const myId = user?.id || localStorage.getItem("memberId");
   const myNickname = user?.nickname || localStorage.getItem("nickname");
 
-  // body 스크롤 방지
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
+  // body 스크롤은 허용 (제거)
+  // useEffect(() => {
+  //   document.body.style.overflow = 'hidden';
+  //   return () => {
+  //     document.body.style.overflow = '';
+  //   };
+  // }, []);
 
   useEffect(() => {
     if (!roomKey) return;
