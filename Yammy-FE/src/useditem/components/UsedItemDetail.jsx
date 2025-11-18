@@ -50,15 +50,9 @@ function UsedItemDetail() {
   useEffect(() => {
     getUsedItemById(params.id, from)
       .then(data => setItem(data))
-      .catch(error => {
-        console.error("게시글 불러오기 실패:", error);
-        if (error.response?.status === 404) {
-          alert("존재하지 않는 게시글입니다.");
-          navigate("/useditem");
-        }
-      })
+      .catch(error => console.error("게시글 불러오기 실패:", error))
       .finally(() => setLoading(false))
-  }, [params.id, from, navigate])
+  }, [params.id, from])
 
   const formatTimeAgo = (dateString) => {
     const date = new Date(dateString)
