@@ -86,6 +86,8 @@
 /* 모달 콘텐츠 */
 .betting-modal-content {
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 배당률 비교 그래프 */
@@ -353,7 +355,8 @@
   padding: 1.5rem;
   border-radius: 12px;
   margin-bottom: 1.5rem;
-  min-height: 180px;
+  height: 180px;
+  flex-shrink: 0;
 }
 
 .amount-header {
@@ -386,10 +389,11 @@
   position: relative;
   gap: 0.5rem;
   height: 48px;
+  width: 100%;
 }
 
 .amount-input {
-  flex: 1;
+  width: 200px;
   padding: 1rem;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
@@ -402,6 +406,7 @@
   touch-action: manipulation;
   height: 48px;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .amount-input-container > div {
@@ -411,6 +416,7 @@
   padding: 0 0.5rem;
   white-space: nowrap;
   flex-shrink: 0;
+  width: 50px;
 }
 
 .amount-input:focus {
@@ -433,9 +439,11 @@
   border-radius: 4px;
   font-size: 0.85rem;
   font-weight: 500;
-  min-height: 2rem;
+  height: 2.5rem;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
 .validation-message.error {
@@ -631,7 +639,8 @@
   }
 
   .bet-amount-section {
-    min-height: 160px;
+    height: 160px;
+    flex-shrink: 0;
   }
 
   .action-buttons {
@@ -639,13 +648,22 @@
   }
 
   .amount-input {
+    width: 180px;
     font-size: 1rem;
-    padding: 0.875rem;
+    padding: 0.75rem;
     height: 44px;
+    max-width: calc(100% - 60px);
   }
 
   .amount-input-container {
     height: 44px;
+    gap: 0.5rem;
+  }
+
+  .amount-input-container > div {
+    font-size: 1rem;
+    width: 45px;
+    padding: 0 0.25rem;
   }
 }
 
