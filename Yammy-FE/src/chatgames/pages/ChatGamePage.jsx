@@ -158,7 +158,7 @@ export default function ChatGamePage() {
                   onImageClick={handleImageClick}
                   isMine={isMine}
                 />
-              );
+              )
             })}
             <div ref={messagesEndRef} />
           </div>
