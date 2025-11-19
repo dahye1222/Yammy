@@ -185,17 +185,15 @@ S13P31C205/
 
 | 로그인 | SNS | 중고거래 |
 |--------|--------|--------|
-| <img src="./Yammy-FE/src/assets/readme/login.png" width="260"/> | <img src="./Yammy-FE/src/assets/readme/sns.gif" width="260"/> | <img src="./Yammy-FE/src/assets/readme/useditem.png" width="260"/> |
+| <img src="./Yammy-FE/src/assets/readme/login.png" width="260"/> | <img src="./Yammy-FE/src/assets/readme/sns.png" width="260"/> | <img src="./Yammy-FE/src/assets/readme/useditem.png" width="260"/> |
 
 | 중고채팅 | 야미페이 | 경기예측 |
 |--------|--------|--------|
-| <img src="./Yammy-FE/src/assets/readme/useditemchat.png" width="260"/> | <img src="./Yammy-FE/src/assets/readme/pay.gif" width="260"/> | <img src="./Yammy-FE/src/assets/readme/predict.gif" width="260"/> |
+| <img src="./Yammy-FE/src/assets/readme/useditemchat.png" width="260"/> | <img src="./Yammy-FE/src/assets/readme/pay.png" width="260"/> | <img src="./Yammy-FE/src/assets/readme/predict.png" width="260"/> |
 
 | NFT티켓 | 응원채팅 | 프로필 |
 |--------|--------|--------|
 | <img src="./Yammy-FE/src/assets/readme/nft.gif" width="260"/> | <img src="./Yammy-FE/src/assets/readme/fanchat.png" width="260"/> | <img src="./Yammy-FE/src/assets/readme/profile.gif" width="260"/> |
-
-
 
 
 ## API 문서
@@ -460,5 +458,6 @@ S13P31C205/
 </details>
 
 ## ERD
+
 
 ## 아키텍쳐
