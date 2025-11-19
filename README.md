@@ -459,5 +459,7 @@ S13P31C205/
 
 ## ERD
 
+<img src="./Yammy-FE/src/assets/readme/erd.png" width="500px" />
+
 
 ## 아키텍쳐
