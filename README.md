@@ -11,6 +11,7 @@
 - [API 명세서](#API-명세서)
 - [ERD](#erd)
 - [아키텍쳐](#아키텍쳐)
+- [팀원 소개](#팀원-소개)
 
 
 ## 프로젝트 소개
@@ -459,9 +460,86 @@ S13P31C205/
 
 ## ERD
 
-<img src="./Yammy-FE/src/assets/readme/erd.png" width="700px" />
+<img src="./Yammy-FE/src/assets/readme/erd.png" width="600px" />
 
 
 ## 아키텍쳐
 
-<img src="./Yammy-FE/src/assets/readme/아키텍쳐_간단버전.png" width="700px" />
+<img src="./Yammy-FE/src/assets/readme/아키텍쳐_간단버전.png" width="650px" />
+
+
+## 팀원 소개
+
+<table>
+  <tr>
+    <th>이다혜 (팀장)</th>
+    <th>김선우</th>
+    <th>박선우</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./Yammy-FE/src/assets/readme/readme.png" width="200">
+    </td>
+    <td align="center">
+      <img src="./Yammy-FE/src/assets/readme/readme.png" width="200">
+    </td>
+    <td align="center">
+      <img src="./Yammy-FE/src/assets/readme/readme.png" width="200">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      SNS<br>
+      NFT 티켓<br>
+      마이페이지<br>
+      UI/UX
+    </td>
+    <td align="center">
+      중고거래 게시판<br>
+      야미페이 (충전·송금·환전)<br>
+      UI/UX
+    </td>
+    <td align="center">
+      중고거래 채팅방<br>
+      고독한 응원 채팅방
+    </td>
+  </tr>
+</table>
+
+<br>
+
+<table>
+  <tr>
+    <th>김민혁</th>
+    <th>김태영</th>
+    <th>박재환</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./Yammy-FE/src/assets/readme/readme.png" width="200">
+    </td>
+    <td align="center">
+      <img src="./Yammy-FE/src/assets/readme/readme.png" width="200">
+    </td>
+    <td align="center">
+      <img src="./Yammy-FE/src/assets/readme/readme.png" width="200">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      경기 일정 및 결과<br>
+      데이터 관리<br>
+      승부 예측
+    </td>
+    <td align="center">
+      회원가입·로그인<br>
+      NFT 티켓 발급
+    </td>
+    <td align="center">
+      CI/CD<br>
+      Nginx 포트 터널링<br>
+      HTTPS 보안<br>
+      Docker Compose
+    </td>
+  </tr>
+</table>
