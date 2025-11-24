@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import imageCompression from 'browser-image-compression';
 import { getTeamColors, TEAM_COLORS } from '../../sns/utils/teamColors';
 import { TEAM_LOGOS } from '../../utils/teamLogos';
@@ -80,6 +81,30 @@ const TicketCreatePage = () => {
         }
     }, [validTeam, navigate]);
 
+    // 페이지 나갈 때 푸터를 원래 팀 색상으로 복구
+    useEffect(() => {
+        return () => {
+            const originalTeam = localStorage.getItem('team');
+            window.dispatchEvent(new CustomEvent('tempTeamChange', {
+                detail: { team: originalTeam }
+            }));
+        };
+    }, []);
+
+    // 모달 열렸을 때 body 스크롤 비활성화
+    useEffect(() => {
+        if (showMatchModal || showLocationModal || showTeamModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        // cleanup: 컴포넌트 언마운트 시 스크롤 복구
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [showMatchModal, showLocationModal, showTeamModal]);
+
     // 팀 변경 시 색상과 배경 업데이트
     useEffect(() => {
         if (selectedTeam) {
@@ -157,21 +182,21 @@ const TicketCreatePage = () => {
 
         try {
             const originalSize = (file.size / 1024 / 1024).toFixed(2);
-            console.log('[TicketCreate] 이미지 압축 시작:', {
-                fileName: file.name,
-                originalSize: `${originalSize}MB`,
-                type: file.type
-            });
+            // console.log('[TicketCreate] 이미지 압축 시작:', {
+            //     fileName: file.name,
+            //     originalSize: `${originalSize}MB`,
+            //     type: file.type
+            // });
 
             const compressedFile = await imageCompression(file, options);
             const compressedSize = (compressedFile.size / 1024 / 1024).toFixed(2);
 
-            console.log('[TicketCreate] 이미지 압축 완료:', {
-                fileName: file.name,
-                originalSize: `${originalSize}MB`,
-                compressedSize: `${compressedSize}MB`,
-                compressionRatio: `${((1 - compressedFile.size / file.size) * 100).toFixed(1)}%`
-            });
+            // console.log('[TicketCreate] 이미지 압축 완료:', {
+            //     fileName: file.name,
+            //     originalSize: `${originalSize}MB`,
+            //     compressedSize: `${compressedSize}MB`,
+            //     compressionRatio: `${((1 - compressedFile.size / file.size) * 100).toFixed(1)}%`
+            // });
 
             return new File([compressedFile], file.name, { type: compressedFile.type });
         } catch (error) {
@@ -238,11 +263,11 @@ const TicketCreatePage = () => {
         setLoadingMatches(true);
         try {
             const response = await getMatchesByDate(selectedDate);
-            console.log('경기 목록 응답:', response);
+            // console.log('경기 목록 응답:', response);
             // response가 배열이면 그대로, 아니면 response.data 사용
             const matchList = Array.isArray(response) ? response : (response.data || []);
             setMatches(matchList);
-            console.log('설정된 경기 수:', matchList.length);
+            // console.log('설정된 경기 수:', matchList.length);
         } catch (error) {
             console.error('경기 목록 불러오기 실패:', error);
             setMatches([]);
@@ -666,8 +691,22 @@ const TicketCreatePage = () => {
             </div>
 
             {/* 경기 선택 모달 */}
-            {showMatchModal && (
-                <div className="location-modal" onClick={() => setShowMatchModal(false)}>
+            {showMatchModal && createPortal(
+                <div 
+                    className="location-modal" 
+                    onClick={() => setShowMatchModal(false)}
+                    style={{ 
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        margin: 0,
+                        padding: 0
+                    }}
+                >
                     <div className="location-modal-content" onClick={(e) => e.stopPropagation()}>
                         <button className="modal-close" onClick={() => setShowMatchModal(false)}>✕</button>
                         <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 700 }}>KBO 경기 선택</h3>
@@ -728,12 +767,27 @@ const TicketCreatePage = () => {
                             </div>
                         )}
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* 팀 선택 모달 */}
-            {showTeamModal && (
-                <div className="location-modal" onClick={() => setShowTeamModal(false)}>
+            {showTeamModal && createPortal(
+                <div
+                    className="location-modal"
+                    onClick={() => setShowTeamModal(false)}
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        margin: 0,
+                        padding: 0
+                    }}
+                >
                     <div className="location-modal-content" onClick={(e) => e.stopPropagation()}>
                         <button className="modal-close" onClick={() => setShowTeamModal(false)}>✕</button>
                         <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 700 }}>응원 팀 선택</h3>
@@ -744,7 +798,10 @@ const TicketCreatePage = () => {
                                     className="stadium-item team-item"
                                     onClick={() => {
                                         setSelectedTeam(team);
-                                        // 티켓 발급에서는 일시적으로만 팀 선택 (localStorage 업데이트 안함)
+                                        // 임시 팀 변경 이벤트 발생 (푸터 색상도 변경)
+                                        window.dispatchEvent(new CustomEvent('tempTeamChange', {
+                                            detail: { team }
+                                        }));
                                         setShowTeamModal(false);
                                     }}
                                     style={{
@@ -770,12 +827,27 @@ const TicketCreatePage = () => {
                             ))}
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* 경기장 선택 모달 */}
-            {showLocationModal && (
-                <div className="location-modal" onClick={() => setShowLocationModal(false)}>
+            {showLocationModal && createPortal(
+                <div 
+                    className="location-modal" 
+                    onClick={() => setShowLocationModal(false)}
+                    style={{ 
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        margin: 0,
+                        padding: 0
+                    }}
+                >
                     <div className="location-modal-content" onClick={(e) => e.stopPropagation()}>
                         <button className="modal-close" onClick={() => setShowLocationModal(false)}>✕</button>
                         <input
@@ -805,7 +877,8 @@ const TicketCreatePage = () => {
                             직접 입력
                         </button>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

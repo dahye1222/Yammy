@@ -87,23 +87,35 @@ const PredictPage = () => {
 
             <div className="odds-info-wrapper">
               <button className="odds-info-button" onClick={() => setShowOddsTooltip(!showOddsTooltip)}>
-                ⓘ 배당률이란?
+                ⓘ 야미 픽! 이란?
               </button>
               {showOddsTooltip && (
                 <div className="odds-tooltip">
                   <div className="tooltip-header">
-                    <strong>배당률이란?</strong>
+                    <strong>야미 픽! 이란?</strong>
                     <button className="tooltip-close" onClick={() => setShowOddsTooltip(false)}>×</button>
                   </div>
                   <div className="tooltip-content">
+                    <p><strong>야미 픽!</strong></p>
+                    <p>• AI 기반으로 승리 팀을 예측 합니다.</p>
+                    <p>• 예상 승률 뿐만 아닌 여러 요소를 고려합니다.</p>
+                  </div>
+                  <div className="tooltip-header">
+                    <strong>배당률이란?</strong>
+                  </div>
+                  <div className="tooltip-content">
                     <p><strong>배당률 2.00이라면:</strong></p>
-                    <p>• 100팬심 배팅 시 승리하면 200팬심을 받는다</p>
+                    <p>• 100팬심 투입 시 승리하면 200팬심을 받는다</p>
                     <p>• 즉, 팬심 100 + 수익 100 = 총 200팬심</p>
                     <br/>
                     <p><strong>계산법:</strong></p>
                     <p>• 투입팬심 × 배당률 = 받을 팬심</p>
                   </div>
+                  <div className="tooltip-content">
+                    <p>※ 야미는 결과에 대한 책임을 지지 않습니다.</p>
+                  </div>
                 </div>
+                
               )}
             </div>
           </div>
@@ -126,7 +138,7 @@ const PredictPage = () => {
                   >
                     <div className="match-time-header">{match.gameTime}</div>
                     <div className="match-prediction-card">
-                      <div className="match-info-section">
+                      <div className="match-teams-section">
                         {/* HOME */}
                         <div className="team-column home-column">
                           <div className="team-label-new">
@@ -210,7 +222,7 @@ const PredictPage = () => {
           )}
 
           {!loading && !error && todayMatches.length === 0 && (
-            <div className="no-matches">배팅 가능한 경기가 없습니다.</div>
+            <div className="no-matches">예측 가능한 경기가 없습니다.</div>
           )}
         </div>
       </div>

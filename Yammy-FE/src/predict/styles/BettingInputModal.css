@@ -23,12 +23,9 @@
   border-radius: 16px;
   width: 100%;
   max-width: 500px;
-  max-height: 85vh;
-  overflow-y: auto;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   animation: modalSlideUp 0.3s ease-out;
   position: relative;
-  -webkit-overflow-scrolling: touch;
 }
 
 @keyframes modalSlideUp {
@@ -84,6 +81,8 @@
 /* 모달 콘텐츠 */
 .betting-modal-content {
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 배당률 비교 그래프 */
@@ -279,6 +278,23 @@
   font-weight: 600;
   opacity: 0.9;
   margin-bottom: 0.25rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 28px;
+}
+
+.selected-team-card .team-label .yammy-pick-label {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  z-index: 10;
+  position: absolute;
+  left: -65px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .selected-team-card .team-name {
@@ -334,6 +350,10 @@
   padding: 1.5rem;
   border-radius: 12px;
   margin-bottom: 1.5rem;
+  height: 210px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .amount-header {
@@ -363,8 +383,12 @@
 .amount-input-container {
   display: flex;
   align-items: center;
-  position: relative;
+  justify-content: flex-start;
   gap: 0.5rem;
+  position: relative;
+  height: 48px;
+  width: 100%;
+  flex-shrink: 0;
 }
 
 .amount-input {
@@ -379,6 +403,9 @@
   -webkit-user-select: text;
   user-select: text;
   touch-action: manipulation;
+  height: 48px;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .amount-input-container > div {
@@ -388,6 +415,8 @@
   padding: 0 0.5rem;
   white-space: nowrap;
   flex-shrink: 0;
+  width: auto;
+  text-align: right;
 }
 
 .amount-input:focus {
@@ -405,20 +434,34 @@
 }
 
 .validation-message {
-  margin-top: 0.5rem;
-  padding: 0.5rem;
-  border-radius: 4px;
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
   font-size: 0.85rem;
   font-weight: 500;
-  min-height: 2rem;
+  height: 2.5rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
 }
 
 .validation-message.error {
   background-color: #ffebee;
   color: #c62828;
   border: 1px solid #ffcdd2;
+}
+
+.validation-message.success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
 }
 
 .currency {
@@ -585,21 +628,65 @@
 @media (max-width: 480px) {
   .betting-modal-backdrop {
     padding: 0.5rem;
+    align-items: center;
   }
-  
+
   .betting-modal-header,
   .betting-modal-content {
     padding: 1rem;
   }
-  
+
   .selected-team-card,
   .bet-amount-section,
   .expected-return {
     padding: 1rem;
   }
-  
+
   .action-buttons {
     gap: 0.75rem;
+  }
+
+  .amount-input {
+    flex: 1;
+    font-size: 1rem;
+    padding: 0.75rem;
+    height: 44px;
+  }
+
+  .amount-input-container {
+    height: 44px;
+    flex-shrink: 0;
+  }
+
+  .amount-input-container > div {
+    font-size: 1rem;
+    width: auto;
+    padding: 0 0.25rem;
+    text-align: right;
+  }
+
+  .bet-amount-section {
+    height: 190px;
+  }
+
+  .validation-message {
+    padding: 0.5rem 0.5rem;
+    font-size: 0.8rem;
+    height: 2.5rem;
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    box-sizing: border-box;
+  }
+
+  .validation-message.error,
+  .validation-message.success {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-left: 0;
+    margin-right: 0;
   }
 }
 

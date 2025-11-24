@@ -44,6 +44,11 @@ public class EscrowService {
         if (buyer.getPoint().getBalance() < amount) {
             throw new IllegalStateException("포인트가 부족합니다.");
         }
+        // confirmed면 또 다른 구매자가 송금 버튼을 누르는 순간 막힘
+        UsedItem usedItem = room.getUsedItem();
+        if (usedItem != null && usedItem.getStatus() == UsedItemStatus.CONFIRMED) {
+            throw new IllegalStateException("이미 거래가 완료된 상품입니다.");
+        }
 
         // 에스크로 생성
         Escrow escrow = escrowRepository.save(
@@ -88,6 +93,14 @@ public class EscrowService {
         if (escrow.getStatus() != EscrowStatus.HOLD) {
             throw new IllegalStateException("이미 처리된 거래입니다.");
         }
+        // confirmed면 다른 한명이 송금 보냈어도 판매자가 못받음
+         UsedItemChatRoom chatRoom = escrow.getUsedItemChatRoom();
+         if (chatRoom != null && chatRoom.getUsedItem() != null) {
+             UsedItem usedItem = chatRoom.getUsedItem();
+             if (usedItem.getStatus() == UsedItemStatus.CONFIRMED) {
+                 throw new IllegalStateException("이미 거래가 완료된 상품입니다.");
+             }
+         }
 
         Member buyer = escrow.getBuyer();
         Member seller = escrow.getSeller();
@@ -103,23 +116,25 @@ public class EscrowService {
         escrow.setStatus(EscrowStatus.CONFIRMED);
 
          // 거래 완료 시, 연결된 UsedItem 상태 거래 완료로 변경
-         UsedItemChatRoom chatRoom = escrow.getUsedItemChatRoom();
+         //UsedItemChatRoom chatRoom = escrow.getUsedItemChatRoom();
          if (chatRoom != null && chatRoom.getUsedItem() != null) {
              UsedItem usedItem = chatRoom.getUsedItem();
              usedItem.setStatus(UsedItemStatus.CONFIRMED);
          }
 
-         // 거래 로그 저장
+         // 거래 로그만 저장 (포인트 변경은 이미 위에서 완료)
          pointTransactionService.recordTransaction(
                  buyer,
                  amount,
-                 TransactionType.ESCROW_DEPOSIT  // 구매자 → 예치
+                 TransactionType.ESCROW_DEPOSIT,  // 구매자 → 예치
+                 buyer.getPoint().getBalance()  // 현재 잔액 전달
          );
 
          pointTransactionService.recordTransaction(
                  seller,
                  amount,
-                 TransactionType.ESCROW_CONFIRMED  // 판매자 → 수익 지급
+                 TransactionType.ESCROW_CONFIRMED,  // 판매자 → 수익 지급
+                 seller.getPoint().getBalance()  // 현재 잔액 전달
          );
 
         // Firebase 메시지 상태 업데이트

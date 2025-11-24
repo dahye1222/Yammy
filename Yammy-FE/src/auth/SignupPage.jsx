@@ -36,11 +36,51 @@ export default function SignupPage() {
       ...prev,
       [name]: value,
     }));
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: '',
-      }));
+
+    // 비밀번호 확인 실시간 검증
+    if (name === 'confirmPassword') {
+      if (value === '') {
+        setErrors((prev) => ({
+          ...prev,
+          confirmPassword: '',
+        }));
+      } else if (value !== formData.password) {
+        setErrors((prev) => ({
+          ...prev,
+          confirmPassword: '비밀번호가 일치하지 않습니다',
+        }));
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          confirmPassword: '',
+        }));
+      }
+    } else if (name === 'password') {
+      // 비밀번호 입력 시 비밀번호 확인도 체크
+      if (formData.confirmPassword && value !== formData.confirmPassword) {
+        setErrors((prev) => ({
+          ...prev,
+          confirmPassword: '비밀번호가 일치하지 않습니다',
+        }));
+      } else if (formData.confirmPassword && value === formData.confirmPassword) {
+        setErrors((prev) => ({
+          ...prev,
+          confirmPassword: '',
+        }));
+      }
+      if (errors[name]) {
+        setErrors((prev) => ({
+          ...prev,
+          [name]: '',
+        }));
+      }
+    } else {
+      if (errors[name]) {
+        setErrors((prev) => ({
+          ...prev,
+          [name]: '',
+        }));
+      }
     }
   };
 
@@ -186,22 +226,60 @@ export default function SignupPage() {
   };
 
   const validateForm = () => {
-    const newErrors = {};
+    // 검증 순서대로 체크
+    if (!formData.id.trim()) {
+      setErrors({ id: '아이디를 입력해주세요' });
+      alert('아이디를 입력해주세요');
+      return false;
+    }
+    if (!formData.name.trim()) {
+      setErrors({ name: '이름을 입력해주세요' });
+      alert('이름을 입력해주세요');
+      return false;
+    }
+    if (!formData.nickname.trim()) {
+      setErrors({ nickname: '닉네임을 입력해주세요' });
+      alert('닉네임을 입력해주세요');
+      return false;
+    }
+    if (!formData.email.trim() || !formData.email.includes('@')) {
+      setErrors({ email: '올바른 이메일을 입력해주세요' });
+      alert('올바른 이메일을 입력해주세요');
+      return false;
+    }
+    if (!emailVerified) {
+      setErrors({ email: '이메일 인증을 완료해주세요' });
+      alert('이메일 인증을 완료해주세요');
+      return false;
+    }
+    if (!formData.password) {
+      setErrors({ password: '비밀번호를 입력해주세요' });
+      alert('비밀번호를 입력해주세요');
+      return false;
+    }
+    if (formData.password.length < 8) {
+      setErrors({ password: '비밀번호는 8자 이상이어야 합니다' });
+      alert('비밀번호는 8자 이상이어야 합니다');
+      return false;
+    }
+    if (!formData.confirmPassword) {
+      setErrors({ confirmPassword: '비밀번호 확인을 입력해주세요' });
+      alert('비밀번호 확인을 입력해주세요');
+      return false;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setErrors({ confirmPassword: '비밀번호가 일치하지 않습니다' });
+      alert('비밀번호가 일치하지 않습니다');
+      return false;
+    }
+    if (!formData.team) {
+      setErrors({ team: '좋아하는 팀을 선택해주세요' });
+      alert('좋아하는 팀을 선택해주세요');
+      return false;
+    }
 
-    if (!formData.id.trim()) newErrors.id = '아이디를 입력해주세요';
-    if (!formData.name.trim()) newErrors.name = '이름을 입력해주세요';
-    if (!formData.nickname.trim()) newErrors.nickname = '닉네임을 입력해주세요';
-    if (!formData.email.trim() || !formData.email.includes('@'))
-      newErrors.email = '올바른 이메일을 입력해주세요';
-    if (!emailVerified) newErrors.email = '이메일 인증을 완료해주세요';
-    if (!formData.team) newErrors.team = '좋아하는 팀을 선택해주세요';
-    if (formData.password.length < 8)
-      newErrors.password = '비밀번호는 8자 이상이어야 합니다';
-    if (formData.password !== formData.confirmPassword)
-      newErrors.confirmPassword = '비밀번호가 일치하지 않습니다';
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors({});
+    return true;
   };
 
   const handleSubmit = async (e) => {
@@ -320,6 +398,9 @@ export default function SignupPage() {
               />
               <i className="fas fa-id-card input-icon"></i>
             </div>
+            <span style={{ fontSize: '12px', color: '#666', marginTop: '4px', display: 'block' }}>
+              {formData.id.length}/20자
+            </span>
             {errors.id && <span className="error-text">{errors.id}</span>}
           </div>
 
@@ -341,6 +422,9 @@ export default function SignupPage() {
               />
               <i className="fas fa-user input-icon"></i>
             </div>
+            <span style={{ fontSize: '12px', color: '#666', marginTop: '4px', display: 'block' }}>
+              {formData.name.length}/20자
+            </span>
             {errors.name && <span className="error-text">{errors.name}</span>}
           </div>
 
@@ -361,6 +445,9 @@ export default function SignupPage() {
               />
               <i className="fas fa-signature input-icon"></i>
             </div>
+            <span style={{ fontSize: '12px', color: '#666', marginTop: '4px', display: 'block' }}>
+              {formData.nickname.length}/20자
+            </span>
             {errors.nickname && <span className="error-text">{errors.nickname}</span>}
           </div>
 
@@ -432,6 +519,9 @@ export default function SignupPage() {
                 {codeSent ? '재발송' : '인증코드'}
               </button>
             </div>
+            <span style={{ fontSize: '12px', color: '#666', marginTop: '4px', display: 'block' }}>
+              {formData.email.length}/50자
+            </span>
             {errors.email && <span className="error-text">{errors.email}</span>}
             {successMessage && !errors.email && (
               <span className="success-text">{successMessage}</span>
@@ -490,6 +580,9 @@ export default function SignupPage() {
                 <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
               </button>
             </div>
+            <span style={{ fontSize: '12px', color: '#666', marginTop: '4px', display: 'block' }}>
+              {formData.password.length}/30자
+            </span>
             {errors.password && <span className="error-text">{errors.password}</span>}
           </div>
 
@@ -519,6 +612,9 @@ export default function SignupPage() {
                 ></i>
               </button>
             </div>
+            <span style={{ fontSize: '12px', color: '#666', marginTop: '4px', display: 'block' }}>
+              {formData.confirmPassword.length}/30자
+            </span>
             {errors.confirmPassword && (
               <span className="error-text">{errors.confirmPassword}</span>
             )}
@@ -568,6 +664,9 @@ export default function SignupPage() {
               rows={3}
               maxLength={200}
             />
+            <span style={{ fontSize: '12px', color: '#666', marginTop: '4px', display: 'block' }}>
+              {formData.bio.length}/200자
+            </span>
           </div>
 
           <button

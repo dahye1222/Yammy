@@ -15,21 +15,21 @@ export default function ImageUpload({ roomKey, apiUploadFunction }) {
 
     try {
       const originalSize = (file.size / 1024 / 1024).toFixed(2);
-      console.log("[ImageUpload] 이미지 압축 시작:", {
-        fileName: file.name,
-        originalSize: `${originalSize}MB`,
-        type: file.type
-      });
+      // console.log("[ImageUpload] 이미지 압축 시작:", {
+      //   fileName: file.name,
+      //   originalSize: `${originalSize}MB`,
+      //   type: file.type
+      // });
 
       const compressedFile = await imageCompression(file, options);
       const compressedSize = (compressedFile.size / 1024 / 1024).toFixed(2);
 
-      console.log("[ImageUpload] 이미지 압축 완료:", {
-        fileName: file.name,
-        originalSize: `${originalSize}MB`,
-        compressedSize: `${compressedSize}MB`,
-        compressionRatio: `${((1 - compressedFile.size / file.size) * 100).toFixed(1)}%`
-      });
+      // console.log("[ImageUpload] 이미지 압축 완료:", {
+      //   fileName: file.name,
+      //   originalSize: `${originalSize}MB`,
+      //   compressedSize: `${compressedSize}MB`,
+      //   compressionRatio: `${((1 - compressedFile.size / file.size) * 100).toFixed(1)}%`
+      // });
 
       return new File([compressedFile], file.name, { type: compressedFile.type }); // 이름 유지
     } catch (error) {
@@ -42,12 +42,44 @@ export default function ImageUpload({ roomKey, apiUploadFunction }) {
     }
   };
 
+  const validateImageFile = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const arr = new Uint8Array(reader.result).subarray(0, 4);
+        let header = '';
+        for (let i = 0; i < arr.length; i++) {
+          header += arr[i].toString(16);
+        }
+
+        const isValidImage =
+          header.startsWith('89504e47') || // PNG
+          header.startsWith('ffd8ff') ||   // JPEG
+          header.startsWith('47494638') || // GIF
+          header.startsWith('424d') ||     // BMP
+          header.startsWith('49492a00') || // TIFF
+          header.startsWith('4d4d002a');   // TIFF
+
+        resolve(isValidImage);
+      };
+      reader.onerror = () => resolve(false);
+      reader.readAsArrayBuffer(file.slice(0, 4));
+    });
+  };
+
   const handleSelect = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
       alert("이미지 파일만 업로드 가능합니다.");
+      return;
+    }
+
+    // 파일 헤더 검증 추가 (여기!)
+  const isValidImage = await validateImageFile(file);
+    if (!isValidImage) {
+      alert("유효하지 않은 이미지 파일입니다.");
       return;
     }
 
@@ -59,10 +91,10 @@ export default function ImageUpload({ roomKey, apiUploadFunction }) {
         
         // GIF가 10MB 넘으면 정적 이미지로 압축
         if (compressedFile.size > 10 * 1024 * 1024) {
-          console.log("[ImageUpload] GIF 파일이 10MB를 초과하여 압축합니다:", {
-            fileName: file.name,
-            originalSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`
-          });
+          // console.log("[ImageUpload] GIF 파일이 10MB를 초과하여 압축합니다:", {
+          //   fileName: file.name,
+          //   originalSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`
+          // });
           compressedFile = await compressImage(file);  // 압축 (애니메이션 손실)
         }
       } else {

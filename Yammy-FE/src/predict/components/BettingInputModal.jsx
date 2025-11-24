@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getTeamColor } from '../hooks/usePredict';
 import { createBetting, getMemberInfo } from '../api/predictApi';
 import { TeamLogo } from '../utils/teamLogo.jsx';
+import yammyPick from '../../assets/images/yammy_pick.png';
 import '../styles/BettingInputModal.css';
 import '../styles/TeamLogo.css';
 
@@ -12,7 +13,7 @@ const BettingInputModal = ({ match, selectedTeam, onClose, onBettingSuccess }) =
   const [loading, setLoading] = useState(false);
   const [userPoints, setUserPoints] = useState(0);
   const [pointsLoading, setPointsLoading] = useState(true);
-  const [validationMessage, setValidationMessage] = useState(''); // 실시간 검증 메시지
+  const [validationMessage, setValidationMessage] = useState('팬심을 입력해주세요'); // 실시간 검증 메시지
 
   // 선택된 팀 정보
   const selectedTeamInfo = selectedTeam === 0 
@@ -66,17 +67,17 @@ const BettingInputModal = ({ match, selectedTeam, onClose, onBettingSuccess }) =
 
       // 실시간 검증
       if (valueWithoutComma === '') {
-        setValidationMessage('');
+        setValidationMessage('팬심을 입력해주세요');
       } else {
         const betAmountNum = parseFloat(valueWithoutComma);
 
         // 최소 배팅 금액 검사 (100팬심)
         if (betAmountNum < 100) {
-          setValidationMessage('최소 배팅 금액은 100팬심입니다');
+          setValidationMessage(`${formattedValue}팬심 - 최소 투입 금액은 100팬심입니다`);
         } else if (betAmountNum > userPoints) {
-          setValidationMessage('보유 팬심을 초과하였습니다');
+          setValidationMessage(`${formattedValue}팬심 - 보유 팬심을 초과하였습니다`);
         } else {
-          setValidationMessage('');
+          setValidationMessage(`${formattedValue}팬심 입력하였습니다`);
         }
       }
     }
@@ -88,7 +89,7 @@ const BettingInputModal = ({ match, selectedTeam, onClose, onBettingSuccess }) =
     const betAmountWithoutComma = betAmount.replace(/,/g, '');
 
     if (!betAmountWithoutComma || parseFloat(betAmountWithoutComma) <= 0) {
-      alert('배팅 팬심을 입력해주세요.');
+      alert('투입 팬심을 입력해주세요.');
       return;
     }
 
@@ -96,7 +97,7 @@ const BettingInputModal = ({ match, selectedTeam, onClose, onBettingSuccess }) =
 
     // 최소 배팅 금액 검사 (100팬심)
     if (betAmountNum < 100) {
-      alert('최소 배팅 금액은 100팬심입니다.');
+      alert('최소 투입 금액은 100팬심입니다.');
       return;
     }
 
@@ -119,7 +120,7 @@ const BettingInputModal = ({ match, selectedTeam, onClose, onBettingSuccess }) =
       await createBetting(bettingData);
 
       // 성공 처리
-      alert('배팅 완료!');
+      alert('예측 완료!');
       onClose(); // 모달 닫기
       navigate('/prediction'); // PredictPage로 이동
 
@@ -129,7 +130,7 @@ const BettingInputModal = ({ match, selectedTeam, onClose, onBettingSuccess }) =
       }
     } catch (error) {
       console.error('Betting error:', error.message);
-      const errorMessage = error.message || '배팅에 실패했습니다. 다시 시도해주세요.';
+      const errorMessage = error.message || '예측에 실패했습니다. 다시 시도해주세요.';
       alert(errorMessage);
     } finally {
       setLoading(false);
@@ -151,14 +152,14 @@ const BettingInputModal = ({ match, selectedTeam, onClose, onBettingSuccess }) =
     <div className="betting-modal-backdrop" onClick={handleBackdropClick}>
       <div className="betting-modal-container">
         <div className="betting-modal-header">
-          <h2>배팅하기</h2>
+          <h2>예측하기</h2>
           <button className="close-button" onClick={onClose}>X</button>
         </div>
 
         <div className="betting-modal-content">
           {/* 배팅금액 비교 그래프 */}
           <div className="odds-comparison-section">
-            <h3>배팅 현황 비교</h3>
+            <h3>예측 현황 비교</h3>
             <div className="odds-comparison-bar">
               <div
                 className={`team-odds-portion ${selectedTeam === 0 ? 'selected' : ''}`}
@@ -213,13 +214,18 @@ const BettingInputModal = ({ match, selectedTeam, onClose, onBettingSuccess }) =
               />
 
               <div style={{ position: 'relative', zIndex: 2 }}>
-                <div className="team-label">{selectedTeamInfo.label}</div>
+                <div className="team-label">
+                  {match.aiPick === selectedTeam && (
+                    <img src={yammyPick} alt="Yammy Pick" className="yammy-pick-label" />
+                  )}
+                  {selectedTeamInfo.label}
+                </div>
                 <div className="team-info-container">
                   <TeamLogo teamName={selectedTeamInfo.name} size="large" />
                   <div className="team-details">
                     <div className="team-name">{selectedTeamInfo.name}</div>
                     <div className="team-odds">{selectedTeamInfo.odds.toFixed(2)}</div>
-                    <div className="odds-ratio-text">예상 승률 : 
+                    <div className="odds-ratio-text">예상 승률 :
                       {((match.homeAmount + match.awayAmount) > 0 ?
                         (selectedTeam === 0 ?
                          (match.homeAmount / (match.homeAmount + match.awayAmount)) * 100 :
@@ -234,7 +240,7 @@ const BettingInputModal = ({ match, selectedTeam, onClose, onBettingSuccess }) =
           {/* 배팅 팬심 입력 */}
           <div className="bet-amount-section">
             <div className="amount-header">
-              <h3>배팅 팬심</h3>
+              <h3>투입 팬심</h3>
               <div className="current-points">
                 {pointsLoading ? (
                   <span>로딩중...</span>
@@ -249,13 +255,12 @@ const BettingInputModal = ({ match, selectedTeam, onClose, onBettingSuccess }) =
                 value={betAmount}
                 onChange={handleAmountChange}
                 placeholder="100팬심 이상 입력하세요"
-                className={`amount-input ${validationMessage ? 'error' : ''}`}
+                className="amount-input"
               />
               <div>팬심</div>
-              <span className="currency"></span>
             </div>
-            <div className={`validation-message ${validationMessage ? 'error' : ''}`}>
-              {validationMessage || '\u00A0'}
+            <div className={`validation-message ${validationMessage.includes('입력하였습니다') ? 'success' : 'error'}`}>
+              {validationMessage}
             </div>
           </div>
 
@@ -264,10 +269,10 @@ const BettingInputModal = ({ match, selectedTeam, onClose, onBettingSuccess }) =
             <button
               className="bet-button"
               onClick={handleBet}
-              disabled={loading || !betAmount || validationMessage}
+              disabled={loading || !betAmount || !validationMessage.includes('입력하였습니다')}
               style={{ backgroundColor: getTeamColor(selectedTeamInfo.name) }}
             >
-              {loading ? '처리중...' : '배팅하기'}
+              {loading ? '처리중...' : '예측하기'}
             </button>
             <button 
               className="cancel-button" 

@@ -42,12 +42,11 @@ public class PhotoService {
     @Value("${AWS_S3_BUCKET}")
     private String bucketName;
 
-    // Presigned URL 생성 (기본: useditem 폴더)
+    // Presigned URL 생성 (useditem)
     public List<PhotoUploadResponse> generatePresignedUrls(int count, String contentType) {
         return generatePresignedUrls(count, contentType, "useditem");
     }
 
-    // Presigned URL 생성 (폴더 경로 지정 가능)
     public List<PhotoUploadResponse> generatePresignedUrls(int count, String contentType, String prefix) {
         return IntStream.range(0, count)
                 .mapToObj(i -> {
@@ -60,7 +59,7 @@ public class PhotoService {
                             .build();
 
                     PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(
-                            r -> r.signatureDuration(Duration.ofDays(7)) // 7일로 설정
+                            r -> r.signatureDuration(Duration.ofDays(7))
                                     .putObjectRequest(putObjectRequest)
                     );
 
@@ -72,7 +71,7 @@ public class PhotoService {
                 .collect(Collectors.toList());
     }
 
-    // 업로드 완료 시 DB에 Photo 저장하고 Photo 반환
+    // 업로드 완료 → DB 저장
     public Photo completeUpload(HttpServletRequest request, PhotoUploadCompleteRequest dto) {
         String token = extractToken(request);
         Long memberId = jwtTokenProvider.getMemberId(token);
@@ -93,12 +92,11 @@ public class PhotoService {
         return photoRepository.save(photo);
     }
 
-    // MultipartFile을 S3에 직접 업로드하고 URL 반환
+    // 티켓 NFT용 업로드
     public String uploadPhoto(MultipartFile file) {
         return uploadPhoto(file, "ticket");
     }
 
-    // MultipartFile을 S3에 직접 업로드하고 URL 반환 (폴더 경로 지정 가능)
     public String uploadPhoto(MultipartFile file, String prefix) {
         try {
             String s3Key = prefix + "/" + UUID.randomUUID() + ".jpg";
@@ -115,7 +113,6 @@ public class PhotoService {
 
             s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
-            // S3 URL 생성 및 반환
             return String.format("https://%s.s3.amazonaws.com/%s", bucketName, s3Key);
         } catch (IOException e) {
             log.error("파일 업로드 실패", e);

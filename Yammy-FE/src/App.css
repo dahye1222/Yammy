@@ -79,3 +79,13 @@
   padding-top: 70px;
 }
 
+.app-content-wrapper.no-padding {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin: 0 !important;
+}
+
+.app-content-wrapper.with-topbar.no-padding {
+  padding-top: 70px !important;
+}
+
